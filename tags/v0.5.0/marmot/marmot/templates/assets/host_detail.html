@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}服务器详情{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">{{hostname}}  {% if host.grid %}<a href="http://192.168.22.49/ganglia/?c=Grid_{{host.grid}}&h={{host.hostname}}" target="_blank"><small>Ganglia地址</small></a>{% endif %}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="panel panel-primary">
+                <div class="panel-heading">硬件信息</div>
+                <ul class="list-group">
+                    {%for item in server_sort%}
+                        {%for key,value in server.items%}
+                            {%if key == item%}
+                                <li class="list-group-item">{{key}}：{{value}}</li>
+                            {%endif%}
+                        {%endfor%}
+                    {%endfor%}
+                    <input type= 'text' id='server_id' value="{{server.id}}"  style="display:none;"/>
+                </ul>
+                <div class="well">
+                    {%for netcard_name, netcard in netcards.items%}
+                        <div class="row text-center">网卡:{{netcard_name}} </div>
+                            {%for item in netcard_sort%}
+                                {%for key, value in netcard.items%}
+                                    {%if key == item%}
+                                        <li class="list-group-item">{{key}}: {{value}}</li>
+                                    {%endif%}
+                                {%endfor%}
+                            {%endfor%}
+                    {%endfor%}
+                </div>
+            </div>
+            <div class="panel panel-green">
+                <div class="panel-heading">包含的服务</div>
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr><th>名称</th><th>端口</th><th>备注</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for hs in host_services %}
+                            <tr><td>{{hs.service.name}}</td><td>{{hs.service.ports}}</td><td>{{hs.service.ext}}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel panel-red">
+                <div class="panel-heading">主机标签</div>
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr><th>名称</th><th>类型</th><th>备注</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for tag in host.tags.all %}
+                            <tr><td>{{tag.name}}</td><td>{{tag.get_type_display}}</td><td>{{tag.ext}}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-lg-5">
+    	    <div class="panel panel-green">             
+    	    	<div class="panel-heading">运行时信息</div>
+    	    	<ul class="list-group">
+                    {%if runtime_info %}
+                        <li class="list-group-item" id='boot_time'>开机时间：{{runtime_info.boot_time}}</li>
+                        <li class="list-group-item" id='load'>负载：{{load}}</li>
+                        <div class="well">
+                            <div class="row text-center">内存</div>
+                            <div id='mem'>
+                                {%for key, value in runtime_info.mem.items%}
+                                    <li class="list-group-item">{{key}}: {{value}}</li>
+                                {%endfor%}
+                            </div>
+                        </div>
+
+                        <div class="well">
+                            <div class="row text-center">CPU</div>
+                            <div id='cpu'>
+                                {%for key,value in runtime_info.cpu.items%}
+                                    <li class="list-group-item">{{key}}: {{value}} </li>
+                                {%endfor%}
+                            </div>
+                        </div>
+
+                        <div class="well">
+                            <div class="row text-center">磁盘</div>
+                            <div id="disk">
+                                {%for top_key, top_item in runtime_info.disk.items%}
+                                    <br>
+                                    {{top_key}}
+                                    <br>
+                                    {%for key,value in top_item.items%}
+                                        <li class="list-group-item">{{key}}:{{value}} </li>
+                                    {%endfor%}
+                                {%endfor%}
+                            </div>
+                        </div>
+
+                        <div class="well">
+                            <div class="row text-center">交换分区</div>
+                                <div id='swap'>
+                                    {%for key,value in runtime_info.swap.items%}
+                                        <li class="list-group-item">{{key}}: {{value}} </li>
+                                    {%endfor%}
+                                </div>
+                        </div>
+                    {% else %}
+                        <div>
+                            <li class="list-group-item">获取信息失败</li>
+                        </div>
+                    {%endif%}
+        		</ul>
+    	    </div>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+window.onload = function(){
+    var time = 3000;
+    var server_id = $('#server_id').val();
+    var inerval = setInterval(get_info, time);
+    function get_info(){
+        $.ajax({
+            type: 'POST',
+            data: {'server_id': server_id},
+            url: '/assets/host_detail/',
+            success: function(data){
+                $('#boot_time').html('开机时间：' + data.runtime_info.boot_time);
+                $('#load').html('负载：' + data.load);
+                $('#mem').html('');
+                for (var key in data.runtime_info.mem) {
+                    $('#mem').append("<li class='list-group-item'>" + key + ": " + data.runtime_info.mem[key] + "</li>");
+                };
+                $('#cpu').html('');
+                for (var key in data.runtime_info.cpu) {
+                    $('#cpu').append("<li class='list-group-item'>" + key + ": " + data.runtime_info.cpu[key] + "</li>");
+                };
+                $('#swap').html('');
+                for (var key in data.runtime_info.swap) {
+                    $('#swap').append("<li class='list-group-item'>" + key + ": " + data.runtime_info.swap[key] + "</li>");
+                };
+                $("#disk").html('');
+                for (var key in data.runtime_info.disk) {
+                    $("#disk").append("<br>" + key + "<br>")
+                    for (var item in data.runtime_info.disk[key]) {
+                        $('#disk').append("<li class='list-group-item'>" + item + ": " + data.runtime_info.disk[key][item] + " </li>");
+                    };
+                };
+            },
+            error: function(){
+                alert('error');
+            }
+        });
+    }}
+
+</script>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}任务 - {{ task.name }}{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active"><a href="{{ task.get_absolute_url }}">任务：{{ task.name }}</a></li>
+    </ol>
+    {% if perms.task.assign_task and not task.done %}
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#assign-task">分配</button>
+    {% endif %}
+    {% if perms.task.delete_task %}
+        <a role="button" class="btn btn-primary" href="{{ task.get_delete_url }}">删除</a>
+    {% endif %}
+    {% if task.type == "ice" or task.type == "tomcat" %}
+        {% if task.operator == user and not task.done %}
+        <button type="button" class="btn btn-primary" id="ignore">忽略</button>
+		<button type="button" class="btn btn-primary" id="done">完成</button>
+        {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">任务名称</th>
+                <td>{{ task.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">申请人</th>
+                <td>{{ task.applicant.first_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">操作人</th>
+                <td>{{ task.operator.first_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">任务类型</th>
+                <td>{{ task.get_type_display }}</td>
+            </tr>
+            {% if task.type == "ice" %}
+            <tr>
+                <th scope="row">ICE服务</th>
+                <td><a href="{{ ice_service.get_absolute_url }}">ICE服务：{{ ice_service.name }}</a></td>
+            </tr>
+            {% elif task.type == "tomcat" %}
+            <tr>
+                <th scope="row">Tomcat应用</th>
+                <td><a href="{{ tomcat_app.get_absolute_url }}">Tomcat应用：{{ tomcat_app.name }}</a></td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th scope="row">进度</th>
+                <td>{{ task.get_state_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ task.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% elif task.type == "firewall" %}
+        {% if task.operator == user and not task.done  %}
+        <button type="button" class="btn btn-primary" id="ignore">忽略</button>
+        <button type="button" class="btn btn-primary" id="done">完成</button>
+        {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">任务名称</th>
+                <td>{{ task.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">申请人</th>
+                <td>{{ task.applicant.first_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">操作人</th>
+                <td>{{ task.operator.first_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">任务类型</th>
+                <td>{{ task.get_type_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">进度</th>
+                <td>{{ task.get_state_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ task.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="goal" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>源地址</th>
+                <th>目标地址</th>
+                <th>端口</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for goal in task.content_object.firewallgoal_set.all %}
+                <tr>
+                    <td>{{ goal.src_addr }}</td>
+                    <td>{{ goal.dest_addr }}</td>
+                    <td>{{ goal.ports }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p class="alert-warning">任务类型错误{{ task.type }}</p>
+    {% endif %}
+
+    <div class="modal fade" id="assign-task" tabindex="-1" role="dialog" aria-labelledby="assign-task-model" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">任务分配</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="cpis-user" class="control-label">指派给：</label>
+                            <select id="cpis-user" class="form-control">
+                                {% for cpis in cpis_list %}
+                                <option value="{{ cpis.id }}">{{ cpis.first_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="assignTask">确定</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+<script>
+$(document).ready(function () {
+    var url = '/task/assign/{{ task.id }}/';
+    var oCpis = $('#cpis-user');
+    $('#assignTask').click(function () {
+        $.getJSON(url, {cpis: oCpis.val()}, function (ret) {
+            if (ret.msg == 0) {
+                location.reload();
+            } else {
+                bootbox.alert(ret.msg);
+            }
+        });
+    });
+
+    $('#ignore').click(function () {
+        var url = "{% url "set_task_progress" task.id 30 %}";
+        $.getJSON(url, {}, function (ret) {
+            if (ret.msg == 0) {
+                location.reload();
+            } else {
+                bootbox.alert(ret.msg);
+            }
+        });
+    });
+
+    $('#done').click(function () {
+        var url = "{% url "set_task_progress" task.id 40 %}";
+        $.getJSON(url, {}, function (ret) {
+            if (ret.msg == 0) {
+                location.reload();
+            } else {
+                bootbox.alert(ret.msg);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

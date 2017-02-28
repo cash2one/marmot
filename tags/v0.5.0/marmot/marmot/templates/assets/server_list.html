@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block title %}主机列表{% endblock %}
+{% block content %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>主机名</th>
+                <th>状态</th>
+                <th>系统</th>
+                <th>IP</th>
+                <th>产品型号</th>
+                <th>CPU核数</th>
+                <th>内存(G)</th>
+                <th>磁盘(G)</th>
+                <th>用途</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for server in servers %}
+            <tr>
+                <td><a href="{{ server.get_absolute_url }}">{{ server.hostname }}</a></td>
+                <td>{% if server.listen_ip in servers_online %}在线{% else %}离线{% endif %}</td>
+                <td>{{ server.os }}</td>
+                <td>{{ server.listen_ip }}</td>
+                <td>{{ server.product_model }}</td>
+                <td>{{ server.cpu_logic_nums }}</td>
+                <td>{{ server.mem_size }}</td>
+                <td>{{ server.disk_size }}</td>
+                <td>{{ server.get_use_for_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div align="center">
+        {% bootstrap_pagination page_obj url=request.path size="small" %}
+    </div>
+{% endblock %}

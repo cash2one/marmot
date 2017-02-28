@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Redis节点{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ redis_node.cluster.get_absolute_url }}">{{ redis_node.cluster.name }}</a></li>
+        <li class="active">Redis节点：{{ redis_node }}</li>
+    </ol>
+
+    {% if perms.monitor.change_redisnode %}
+    <a role="button" class="btn btn-primary" href="{{ redis_node.get_update_url }}">编辑</a>
+    {% endif %}
+    <a role="button" class="btn btn-info" href="{{ redis_node.get_monitor_url }}">监视</a>
+    {% if perms.monitor.delete_redisnode %}
+    <a role="button" class="btn btn-danger" href="{{ redis_node.get_delete_url }}">删除</a>
+    {% endif %}
+
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">主机</th>
+                <td>{{ redis_node }}</td>
+            </tr>
+            <tr>
+                <th scope="row">角色</th>
+                <td>{{ redis_node.role }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ redis_node.created_by.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ redis_node.create_time }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

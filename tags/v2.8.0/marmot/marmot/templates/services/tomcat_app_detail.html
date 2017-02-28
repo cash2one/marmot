@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}Tomcat应用{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app.cluster.get_absolute_url }}">Tomcat集群：{{ tomcat_app.cluster.name }}</a></li>
+        <li>Tomcat应用：{{ tomcat_app.name }}</li>
+    </ol>
+
+    {% if perms.services.change_tomcatapp %}
+    <a role="button" class="btn btn-primary" href="{{ tomcat_app.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.services.delete_tomcatapp %}
+    <a role="button" class="btn btn-danger" href="{{ tomcat_app.get_delete_url }}">删除</a>
+    {% endif %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                    <tr>
+                        <th scope="row" style="width: 20%">名称</th>
+                        <td>{{ tomcat_app.name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">备注</th>
+                        <td>{{ tomcat_app.note }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">开发者</th>
+                        <td>{{ tomcat_app.get_users_display }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">创建时间</th>
+                        <td>{{ tomcat_app.create_time | date:"Y-m-d H:i:s" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            {% if perms.services.add_tomcatappdb %}
+            <a role="button" class="btn btn-primary" href="{% url "tomcat_app_db_create" tomcat_app.id %}">添加数据库</a>
+            {% endif %}
+            {% get_obj_perms request.user for tomcat_app.cluster as "tomcat_cluster_perms" %}
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <thead>
+                    <tr>
+                        <th>数据库名称</th>
+                        <th>地址</th>
+                        <th>端口</th>
+                        <th>状态</th>
+                        {% if "operate_db" in tomcat_cluster_perms %}
+                        <th>操作</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for db in tomcat_app.tomcatappdb_set.all %}
+                        <tr>
+                            <td><a href="{{ db.get_absolute_url }}">{{ db.name }}</a></td>
+                            <td>{{ db.ip }}</td>
+                            <td>{{ db.port }}</td>
+                            <td>{{ db.get_state_display }}</td>
+                            {% if "operate_db" in tomcat_cluster_perms %}
+                            <td>
+                                <button type='button' value="{% url 'backup_database' db.id %}" class='btn btn-sm btn-info backup-db'>备份</button>
+                            </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% get_obj_perms request.user for tomcat_app.cluster as "tomcat_cluster_perms" %}
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <thead>
+                    <tr>
+                        <th>Tomcat节点</th>
+                        <th>War包目录</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for node in tomcat_app.tomcatappnode_set.all %}
+                        {% with node.server.is_alive as is_alive %}
+                        <tr>
+                            <td><a href="{{ node.server.get_absolute_url }}" class="btn btn-link">{{ node.server.name }} - {{ node.server.host }}</a></td>
+                            <td>
+                                <button type='button' value="{% url 'get_tomcat_server_war_dir' node.id %}" class='btn btn-link config-dir'>{% if node.war_dir %}{{ node.war_dir.war_dir }}{% else %}配置目录{% endif %}</button>
+                            </td>
+                            <td>
+                                {% bootstrap_span_state is_alive content_type=1 %}
+                            </td>
+                            <td>
+                                {% if "operate_tomcat" in tomcat_cluster_perms %}
+                                {% if is_alive %}
+                                    <button type='button' class='btn btn-sm btn-danger switch-ts' href="{% url 'tomcat_server_switch' node.server.id %}" value="stop">停止</button>
+                                {% else %}
+                                    <button type='button' class='btn btn-sm btn-success switch-ts' href="{% url 'tomcat_server_switch' node.server.id %}" value="start">启动</button>
+                                {% endif %}
+                                {% endif %}
+                                {% if "push_war_pkg" in tomcat_cluster_perms %}
+                                <button type='button' class='btn btn-sm btn-info push-war' value="{% url "push_war_to_tomcat" tomcat_app.id node.id %}" {% if not active_war.is_ready %}disabled{% endif %}>推包</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="#" class="list-group-item active">基本信息</a>
+                <a href="{% url 'tomcat_app_war_list' tomcat_app.id %}" class="list-group-item">War包列表<span class="badge">{{ tomcat_app.tomcatappwar_set.count }}</span></a>
+                <a href="{% url 'tomcat_app_sql_list' tomcat_app.id %}" class="list-group-item">Sql文件列表<span class="badge">{{ tomcat_app.tomcatappsql_set.count }}</span></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="config-tsn-modal" tabindex="-1" role="dialog" aria-labelledby="config-tsn-modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title"><strong>配置目录</strong></h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                        <label for="war-dir" class="control-label">选择War包放置的目录</label>
+                        <select id="war-dir" class="form-control"></select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-success" id="save-war-dir">保存</button>
+                    <button type="button" class="btn btn-sm btn-warning" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+<script>
+    $(document).ready(function () {
+        var oWarDir = $('#war-dir');
+        var btnSaveWarDir = $('#save-war-dir');
+        var modal = $('#config-tsn-modal');
+
+        $('.config-dir').click(function () {
+            var url = $(this).val();
+            $.getJSON(url, {}, function (ret) {
+                if (ret.msg == 0) {
+                    oWarDir.empty();
+                    var data = ret.data;
+                    for (var i = 0; i < data.length; i++) {
+                        oWarDir.append('<option value="' + data[i].tswid + '">' + data[i].wdir + '</option>');
+                    }
+                    btnSaveWarDir.val(ret.nid);
+                    modal.modal('show');
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+
+        btnSaveWarDir.click(function () {
+            var nid = $(this).val();
+            var wid = oWarDir.val();
+            if (wid !== null) {
+                $.getJSON("{% url 'config_tomcat_app_node_war_dir' %}", {'nid': nid, 'wid': wid}, function (ret) {
+                    if (ret.msg == 0) {
+                        location.reload();
+                    } else {
+                        bootbox.alert(ret.msg);
+                    }
+                });
+            }
+            modal.modal('hide');
+        });
+
+        $('.backup-db').click(function () {
+            var url = $(this).val();
+            bootbox.confirm('确认执行备份吗？(注意这是全库备份)', function (result) {
+                if (result) {
+                    $.getJSON(url, {}, function (ret) {
+                        if (ret.msg == 0) {
+                            bootbox.alert('已经添加到任务队列中!');
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+
+        $('.switch-ts').click(function () {
+            var self = $(this);
+            var state = self.val();
+            var url = self.attr('href');
+            var tip = '';
+            if (state === 'start') {
+                tip = '确认启动Tomcat吗？';
+            } else if (state == 'stop') {
+                tip = '确认停止Tomcat吗？'
+            }
+            bootbox.confirm(tip, function (result) {
+                if (result) {
+                    $.getJSON(url, {state: state}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.reload();
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+
+        $('.push-war').click(function () {
+            var url = $(this).val();
+            bootbox.confirm('确认推包吗？', function (result) {
+                if (result) {
+                    $.getJSON(url, {}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.href = ret.redirect;
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

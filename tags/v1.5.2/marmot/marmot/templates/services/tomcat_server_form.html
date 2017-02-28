@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}新建Tomcat服务器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        {% if "/tomcet-server/create" in request.path %}
+            <li class="active">新建Tomcat服务器</li>
+        {% else %}
+            <li class="active">更新Tomcat服务器：{{ tomcat_server.name }}</li>
+        {% endif %}
+    </ol>
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+{% endblock %}

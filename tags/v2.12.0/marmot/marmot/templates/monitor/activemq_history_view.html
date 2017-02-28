@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}ActiveMQ历史信息{% endblock %}
+{% block content %}
+{#    <style type="text/css">body{margin:0; padding:0;}</style>#}
+
+    <ol class="breadcrumb">
+        <li><a href="{% url 'activemq_monitor_list_view' %}">ActiveMQ监控器列表</a></li>
+        <li>ActiveMQ历史信息</li>
+    </ol>
+
+    <div class="form-group form-group-sm">
+        <label class="control-label" for="duration">历史数据时间段</label>
+        <select id="duration" class="form-control">
+            <option value="1">1小时</option>
+            <option value="2">2小时</option>
+            <option value="4">4小时</option>
+            <option value="6">6小时</option>
+            <option value="12">12小时</option>
+            <option value="24">24小时</option>
+        </select>
+    </div>
+
+    <iframe id="mqiframe" scrolling="no" frameborder="0" width="100%"
+            src="http://logstash.100credit.cn/app/kibana#/dashboard/activeMQ%E7%9B%91%E6%8E%A7?embed=true&_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-1h,mode:quick,to:now))&_a=(filters:!(),options:(darkTheme:!f),panels:!((col:1,id:activeMQ-JVM-GC%E8%80%97%E6%97%B6,panelIndex:1,row:1,size_x:12,size_y:4,type:visualization),(col:1,id:activeMQ%E5%A0%86%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5,panelIndex:2,row:5,size_x:6,size_y:3,type:visualization),(col:1,id:activeMQ%E6%80%BB%E7%BA%BF%E7%A8%8B%E6%95%B0,panelIndex:3,row:8,size_x:12,size_y:3,type:visualization),(col:7,id:activeMQ%E9%9D%9E%E5%A0%86%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5,panelIndex:4,row:5,size_x:6,size_y:3,type:visualization),(col:1,id:'activeMQ(amq-A)%E9%98%9F%E5%88%97%E9%95%BF%E5%BA%A6',panelIndex:5,row:11,size_x:12,size_y:4,type:visualization)),query:(query_string:(analyze_wildcard:!t,query:'*')),title:activeMQ%E7%9B%91%E6%8E%A7,uiState:())">
+    </iframe>
+{% endblock %}
+{% block js %}
+<script>
+$(document).ready(function () {
+    var mqiframe = $("#mqiframe");
+    var duration = $('#duration');
+    mqiframe.height(1560);
+    duration.change(function () {
+        var dura = $(this).val();
+        mqiframe.attr('src', "http://logstash.100credit.cn/app/kibana#/dashboard/activeMQ%E7%9B%91%E6%8E%A7?" +
+            "embed=true&" +
+            "_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-" + dura + "h,mode:quick,to:now))&" +
+            "_a=(filters:!(),options:(darkTheme:!f)," +
+            "panels:!((col:1,id:activeMQ-JVM-GC%E8%80%97%E6%97%B6," +
+            "panelIndex:1,row:1,size_x:12,size_y:4,type:visualization)," +
+            "(col:1,id:activeMQ%E5%A0%86%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5," +
+            "panelIndex:2,row:5,size_x:6,size_y:3,type:visualization)," +
+            "(col:1,id:activeMQ%E6%80%BB%E7%BA%BF%E7%A8%8B%E6%95%B0," +
+            "panelIndex:3,row:8,size_x:12,size_y:3,type:visualization)," +
+            "(col:7,id:activeMQ%E9%9D%9E%E5%A0%86%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5," +
+            "panelIndex:4,row:5,size_x:6,size_y:3,type:visualization)," +
+            "(col:1,id:'activeMQ(amq-A)%E9%98%9F%E5%88%97%E9%95%BF%E5%BA%A6'," +
+            "panelIndex:5,row:11,size_x:12,size_y:4,type:visualization))," +
+            "query:(query_string:(analyze_wildcard:!t,query:'*'))," +
+            "title:activeMQ%E7%9B%91%E6%8E%A7,uiState:())");
+    });
+});
+</script>
+{% endblock %}

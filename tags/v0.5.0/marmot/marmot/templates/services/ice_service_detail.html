@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}ICE服务{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ ice_service.center.get_absolute_url }}">ICE注册中心：{{ ice_service.center.name }}</a></li>
+        <li>ICE服务：{{ ice_service.name }}</li>
+    </ol>
+
+    <a role="button" class="btn btn-primary" href="{{ ice_service.get_update_url }}">编辑</a>
+    <a role="button" class="btn btn-primary" href="{{ ice_service.get_delete_url }}">删除</a>
+    {% if perms.services.deploy %}
+        {% if ice_service.center.iceservicenode_set.count %}
+            <button type="button" class="btn btn-primary" id="push">推送程序包</button>
+            <button type="button" class="btn btn-primary" id="ice-service-start">启动</button>
+            <button type="button" class="btn btn-primary" id="ice-service-sync-xml">更新Xml</button>
+            {% if application_nodes %}
+                <button type="button" class="btn btn-primary" id="ice-service-remove">移除</button>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ ice_service.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">工程目录名称</th>
+                <td>{{ ice_service.dir_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">程序包</th>
+                <td><a href="{{ ice_service.package.url}}">{{ ice_service.package_real_name}}</a></td>
+            </tr>
+            <tr>
+                <th scope="row">部署文件</th>
+                <td><a href="{{ ice_service.xml.url }}">{{ ice_service.xml.name}}</a></td>
+            </tr>
+            <tr>
+                <th scope="row">版本</th>
+                <td>{{ ice_service.version}}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ ice_service.user.first_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ ice_service.note }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ ice_service.create_time }}</td>
+            </tr>
+            <tr>
+                <th scope="row">更新时间</th>
+                <td>{{ ice_service.modify_time }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            {% for node, info in application_nodes.items %}
+            <tr>
+                <th scope="row">{{ node }}</th>
+                <td>{{ info.state }}</td>
+                <td>
+                    <button class="btn btn-primary server-node" href="{% url "ice_service_node_state" ice_service.id node 1 %}">启动</button>
+                    <button class="btn btn-danger server-node" href="{% url "ice_service_node_state" ice_service.id node 0 %}">停止</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+{% block js %}
+    <script>
+        $(document).ready(function () {
+            $(".server-node").click(function () {
+                var url = $(this).attr('href');
+                $.getJSON(url, {}, function (ret) {
+                    if (ret.msg == 0) {
+                        location.reload();
+                    } else {
+                        alert(ret.msg);
+                    }
+                });
+            });
+
+            {% if perms.services.deploy %}
+            $('#push').click(function () {
+                var url = "{% url "push_ice_service_pkg" ice_service.id %}";
+                $.getJSON(url, {}, function (ret) {
+                    if (ret.msg == 0) {
+                        location.href = "{% url 'node_task_log_view' ice_service.get_uuid_str %}";
+                    } else {
+                        alert(ret.msg);
+                    }
+                });
+            });
+
+            $('#ice-service-start').click(function () {
+                var url = "{% url "start_ice_service" ice_service.id %}";
+                $.getJSON(url, {}, function (ret) {
+                    if (ret.msg == 0) {
+                        location.reload();
+                    } else {
+                        alert(ret.msg);
+                    }
+                });
+            });
+
+            $('#ice-service-remove').click(function () {
+                var url = "{% url "remove_ice_service" ice_service.id %}";
+                $.getJSON(url, {}, function (ret) {
+                    if (ret.msg == 0) {
+                        location.reload();
+                    } else {
+                        alert(ret.msg);
+                    }
+                });
+            });
+
+            $('#ice-service-sync-xml').click(function () {
+                var url = "{% url "sync_ice_service_xml" ice_service.id %}";
+                $.getJSON(url, {}, function (ret) {
+                    if (ret.msg == 0) {
+                        location.reload();
+                    } else {
+                        alert(ret.msg);
+                    }
+                });
+            });
+            {% endif %}
+        });
+    </script>
+{% endblock %}

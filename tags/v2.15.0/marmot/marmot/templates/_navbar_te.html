@@ -1,0 +1,25 @@
+<li><a href="{% url 'server_list' %}">主机列表</a></li>
+<li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="themes">服务<span class="caret"></span></a>
+    <ul class="dropdown-menu" aria-labelledby="themes">
+        <li><a href="{% url 'ice_service_center_list' %}">ICE服务</a></li>
+        <li><a href="{% url 'tomcat_group_list' %}">Tomcat服务</a></li>
+        <li><a href="{% url 'springcloud_cluster_list' %}">SpringCloud应用</a></li>
+        <li><a href="{% url 'node_app_list' %}">Node应用</a></li>
+        <li><a href="{% url 'storm_cluster_list' %}">Storm服务</a></li>
+        <li><a href="{% url 'script_list' %}">脚本</a></li>
+    </ul>
+</li>
+<li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#" id="themes">监控<span class="caret"></span></a>
+    <ul class="dropdown-menu" aria-labelledby="themes">
+        <li><a href="{% url 'redis_cluster_list' %}">Redis集群监控器列表</a></li>
+        <li><a href="{% url 'hbase_cluster_list' %}">HBase集群监控器列表</a></li>
+        <li><a href="{% url 'es_list' %}">ES监控器列表</a></li>
+        <li><a href="{% url 'neo4j_list' %}">Neo4j监控器列表</a></li>
+        <li><a href="{% url 'activemq_monitor_list_view' %}">ActiveMQ监控器列表</a></li>
+        <li><a href="{% url 'kafka_monitor_list_view' %}">Kafa监控器列表</a></li>
+        <li><a href="{% url 'springcloud_monitor_list_view' %}">SpringCloud监控器列表</a></li>
+    </ul>
+</li>
+<li><a href="{% url 'task_list' %}">任务</a></li>

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}ActiveMQ历史信息{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'activemq_monitor_list_view' %}">ActiveMQ监控器列表</a></li>
+        <li>ActiveMQ历史信息</li>
+    </ol>
+
+    <div class="form-group form-group-sm">
+        <label class="control-label" for="duration">历史数据时间段</label>
+        <select id="duration" class="form-control">
+            <option value="1">1小时</option>
+            <option value="2">2小时</option>
+            <option value="4">4小时</option>
+            <option value="6">6小时</option>
+            <option value="12">12小时</option>
+            <option value="24">24小时</option>
+        </select>
+    </div>
+    <iframe id="mqiframe" scrolling="no" frameborder="0" width="100%"
+            src="http://logstash.100credit.cn/app/kibana#/dashboard/activeMQ%E7%9B%91%E6%8E%A7?embed=true&_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-1h,mode:quick,to:now))">
+    </iframe>
+{% endblock %}
+{% block js %}
+<script>
+$(document).ready(function () {
+    var $mqiframe = $("#mqiframe");
+    var $duration = $('#duration');
+    $mqiframe.height(1560);
+    $duration.change(function () {
+        var dura = $(this).val();
+        mqiframe.attr('src', "http://logstash.100credit.cn/app/kibana#/dashboard/activeMQ%E7%9B%91%E6%8E%A7?" +
+            "embed=true&" +
+            "_g=(refreshInterval:(display:Off,pause:!f,value:0),time:(from:now-" + dura + "h,mode:quick,to:now))"
+        );
+    });
+});
+</script>
+{% endblock %}

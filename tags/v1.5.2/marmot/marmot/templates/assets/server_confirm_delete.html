@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除主机{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ server.cabinet.idc.get_absolute_url }}">{{ server.cabinet.idc.name }}</a></li>
+        <li><a href="{{ server.cabinet.get_absolute_url }}">{{ server.cabinet.num }}</a></li>
+        <li class="active">删除主机：{{ server.hostname }}</li>
+    </ol>
+    {% if center %}
+        <div class="alert alert-danger" role="alert">无法删除主机"{{ server.hostname }}"，它是ICE注册中心:"{{ center.name }}"的主注册</div>
+    {% else %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">确认要删除主机"{{ server.hostname }}:{{ server.ip }}"吗?</div>
+        {% buttons submit="确认" %}{% endbuttons %}
+    </form>
+    {% endif %}
+{% endblock %}

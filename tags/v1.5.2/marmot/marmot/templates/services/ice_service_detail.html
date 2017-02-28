@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load guardian_tags %}
+{% block title %}ICE服务{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ ice_service.center.get_absolute_url }}">ICE注册中心：{{ ice_service.center.name }}</a></li>
+        <li>ICE服务：{{ ice_service.name }}</li>
+    </ol>
+
+    <a role="button" class="btn btn-primary" href="{{ ice_service.get_update_url }}">编辑</a>
+    <a role="button" class="btn btn-primary" href="{{ ice_service.get_delete_url }}">删除</a>
+    {% get_obj_perms request.user for ice_service.center as "ice_service_perms" %}
+    {% if "deploy_service" in ice_service_perms %}
+        <button type="button" class="btn btn-primary" id="push">推送程序包</button>
+        <button type="button" class="btn btn-primary" id="ice-service-start">{% if application_nodes %}重启{% else %}启动{% endif %}</button>
+        <button type="button" class="btn btn-primary" id="ice-service-sync-xml">更新Xml</button>
+        {% if application_nodes %}
+            <button type="button" class="btn btn-primary" id="ice-service-remove">移除</button>
+        {% endif %}
+    {% endif %}
+    <div class="row">
+    <div class="col-sm-9">
+        <table class="table table-bordered table-hover" style="margin-top: 3px;">
+            <tbody>
+                <tr>
+                    <th scope="row" style="width: 20%">名称</th>
+                    <td>{{ ice_service.name }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">工程目录名称</th>
+                    <td>{{ ice_service.dir_name }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">部署文件</th>
+                    <td><a href="{{ ice_service.xml.url }}">{{ ice_service.xml.name }}</a></td>
+                </tr>
+                <tr>
+                    <th scope="row">当前程序包地址</th>
+                    <td>{{ active_jar.package }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">当前配置文件</th>
+                    <td>{{ active_config.config.name }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">版本</th>
+                    <td>{{ ice_service.version }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">创建人</th>
+                    <td>{{ ice_service.user.get_full_name }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">备注</th>
+                    <td>{{ ice_service.note }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">创建时间</th>
+                    <td>{{ ice_service.create_time }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-bordered table-hover" style="margin-top: 3px;">
+            <tbody>
+                {% for node, info in application_nodes.items %}
+                <tr{% ifequal info.state "" %} class="warning"{% endifequal %}>
+                    <th scope="row">{{ node }}</th>
+                    <td>{{ info.server }}</td>
+                    <td><span class="label label-{% ifequal info.state "Active" %}success{% else %}danger{% endifequal %}">{{ info.state }}</span></td>
+                    <td>
+                        {% ifnotequal info.state "" %}
+                        {% ifequal info.state "Active" %}
+                        <button class="btn btn-danger btn-sm server-node" href="{% url "ice_service_node_state" ice_service.id info.server 0 %}">停止</button>
+                        {% else %}
+                        <button class="btn btn-success btn-sm server-node" href="{% url "ice_service_node_state" ice_service.id info.server 1 %}">启动</button>
+                        {% endifequal %}
+                        <button class="btn btn-success btn-sm push-one-node" href="{{ node }}">推包</button>
+                        {% else %}
+                            注册中心没有节点: {{ node }}
+                        {% endifnotequal %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="col-sm-3">
+        <div class="list-group">
+            <a href="#" class="list-group-item active">基本信息</a>
+            <a href="{% url 'ice_service_jar_list' ice_service_id=ice_service.id %}" class="list-group-item">程序包列表<span class="badge">{{ active_jar_count }}</span></a>
+            <a href="{% url 'ice_service_config_list' ice_service_id=ice_service.id %}" class="list-group-item">配置文件列表<span class="badge">{{ active_config_count }}</span></a>
+        </div>
+    </div>
+    </div>
+{% endblock %}
+{% block js %}
+<script>
+    $(document).ready(function () {
+        $(".server-node").click(function () {
+            var url = $(this).attr('href');
+            $.getJSON(url, {}, function (ret) {
+                if (ret.msg == 0) {
+                    location.reload();
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+
+        {% if perms.services.deploy %}
+        $(".push-one-node").click(function () {
+            var node = $(this).attr('href');
+            var url = "{% url "push_ice_service_pkg" ice_service.id %}";
+            $.getJSON(url, {node: node}, function (ret) {
+                if (ret.msg == 0) {
+                    location.href = "{% url 'node_task_log_view' ice_service.identifier.get_hex %}";
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+
+        $('#push').click(function () {
+            var url = "{% url "push_ice_service_pkg" ice_service.id %}";
+            $.getJSON(url, {node: 'all'}, function (ret) {
+                if (ret.msg == 0) {
+                    location.href = "{% url 'node_task_log_view' ice_service.identifier.get_hex %}";
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+
+        $('#ice-service-start').click(function () {
+            var url = "{% url "start_ice_service" ice_service.id %}";
+            $.getJSON(url, {}, function (ret) {
+                if (ret.msg == 0) {
+                    location.reload();
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+
+        $('#ice-service-remove').click(function () {
+            var url = "{% url "remove_ice_service" ice_service.id %}";
+            $.getJSON(url, {}, function (ret) {
+                if (ret.msg == 0) {
+                    location.reload();
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+
+        $('#ice-service-sync-xml').click(function () {
+            var url = "{% url "sync_ice_service_xml" ice_service.id %}";
+            $.getJSON(url, {}, function (ret) {
+                if (ret.msg == 0) {
+                    location.reload();
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+        {% endif %}
+    });
+</script>
+{% endblock %}

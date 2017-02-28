@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}ActiveMQ监控器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'activemq_monitor_list_view' %}">ActiveMQ监控器列表</a></li>
+        <li class="active">ActiveMQ监控器：{{ activemq_monitor.name }}</li>
+    </ol>
+
+    {% if perms.monitor.change_activemqmonitor %}
+    <a role="button" class="btn btn-primary" href="{{ activemq_monitor.get_update_url }}">编辑</a>
+    {% endif %}
+    <a role="button" class="btn btn-info" href="{{ activemq_monitor.get_monitor_url }}">监视</a>
+    {% if perms.monitor.delete_activemqmonitor %}
+    <a role="button" class="btn btn-danger" href="{{ activemq_monitor.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row" style="width: 20%">名称</th>
+                <td>{{ activemq_monitor.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">监控接口地址</th>
+                <td>{{ activemq_monitor.addr }}</td>
+            </tr>
+            <tr>
+                <th scope="row">警报线</th>
+                <td>{{ activemq_monitor.level }}</td>
+            </tr>
+            <tr>
+                <th scope="row">状态</th>
+                <td>{% bootstrap_span_custom activemq_monitor.active "开启/关闭" %}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ activemq_monitor.created_by.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ activemq_monitor.create_time }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td><pre class="pre-note">{{ activemq_monitor.note }}</pre></td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

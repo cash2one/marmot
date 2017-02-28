@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除网络设备{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ network_device.cabinet.idc.get_absolute_url }}">{{ network_device.cabinet.idc.name }}</a></li>
+        <li><a href="{{ network_device.cabinet.get_absolute_url }}">{{ network_device.cabinet.num }}</a></li>
+        <li class="active">删除设备：{{ network_device.get_device_type_display }}-{{ network_device.num }}</li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">
+            确认要删除设备"{{ network_device.get_device_type_display }}-{{ network_device.num }}"吗?
+        </div>
+        {% buttons submit="确认" %}{% endbuttons %}
+    </form>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% load bootstrap3 %}
+<form method="post" enctype="multipart/form-data" onsubmit="loading(true)">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    {% buttons submit="提交" %}{% endbuttons %}
+</form>

@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% load myfilter %}
+{% block title %}主机{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        {% if user.profile.role.alias == "CPIS" %}
+        <li><a href="{{ server.cabinet.idc.get_absolute_url }}">{{ server.cabinet.idc.name }}</a></li>
+        <li><a href="{{ server.cabinet.get_absolute_url }}">机柜：{{ server.cabinet.num }}</a></li>
+        {% endif %}
+        <li class="active">主机：{{ server.hostname }} - {{ server.ip }}</li>
+    </ol>
+    {% if perms.assets.change_server %}
+    <a role="button" class="btn btn-primary" href="{{ server.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.assets.delete_server %}
+    <a role="button" class="btn btn-primary" href="{{ server.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">主机名</th>
+                <td>{{ server.hostname }}</td>
+            </tr>
+            <tr>
+                <th scope="row">标签</th>
+                <td>{{ server.get_tags_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">IP</th>
+                <td>{{ server.ip }}</td>
+            </tr>
+            <tr>
+                <th scope="row">操作系统</th>
+                <td>{{ server.os }}</td>
+            </tr>
+            <tr>
+                <th scope="row">序列号</th>
+                <td>{{ server.serial_num }}</td>
+            </tr>
+            <tr>
+                <th scope="row">厂商</th>
+                <td>{{ server.manufacturer}}</td>
+            </tr>
+            <tr>
+                <th scope="row">产品型号</th>
+                <td>{{ server.product_model }}</td>
+            </tr>
+            <tr>
+                <th scope="row">CPU型号</th>
+                <td>{{ server.cpu_model }}</td>
+            </tr>
+            <tr>
+                <th scope="row">CPU逻辑内核数</th>
+                <td>{{ server.cpu_logic_nums }}</td>
+            </tr>
+            <tr>
+                <th scope="row">内存</th>
+                <td>{{ server.mem_size }}</td>
+            </tr>
+            <tr>
+                <th scope="row">硬盘</th>
+                <td>{{ server.disk_size }}</td>
+            </tr>
+            <tr>
+                <th scope="row">cpu警报线</th>
+                <td>{{ server.cpu_level }}</td>
+            </tr>
+            <tr>
+                <th scope="row">内存警报线</th>
+                <td>{{ server.memory_level }}</td>
+            </tr>
+            <tr>
+                <th scope="row">硬盘警报线</th>
+                <td>{{ server.disk_level }}</td>
+            </tr>
+            <tr>
+                <th scope="row">警报间隔</th>
+                <td>{{ server.alarm_interval }}</td>
+            </tr>
+            <tr>
+                <th scope="row">警报状态</th>
+                <td>{{ server.get_monitor_enabled_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">用途</th>
+                <td>{{ server.get_use_for_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ server.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if netcard_list %}
+    <span class="label label-success">网卡</span>
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>IP</th>
+                <th>广播</th>
+                <th>掩码</th>
+                <th>硬件地址</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for netcard in netcard_list %}
+                <tr>
+                    <td>{{ netcard.name }}</td>
+                    <td>{{ netcard.ip_addr }}</td>
+                    <td>{{ netcard.net_addr }}</td>
+                    <td>{{ netcard.sub_mask }}</td>
+                    <td>{{ netcard.mac_addr }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+        <span class="label label-success">CPU</span>
+        <table id="cpu" class="table table-hover table-striped" style="margin-top: 3px;">
+            <tr>
+                <th width="20%">Load average</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>User</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>System</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Idle</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>I/O wait</th>
+                <td></td>
+            </tr>
+        </table>
+
+        <span class="label label-success">Memory</span>
+        <table id="memory" class="table table-hover table-striped" style="margin-top: 3px;">
+            <tr>
+                <th width="20%">Total</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Available</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Used</th>
+                <td> </td>
+            </tr>
+            <tr>
+                <th>Free</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Percent</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Active</th>
+                <td> </td>
+            </tr>
+            <tr>
+                <th>Inactive</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Buffers</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Cached</th>
+                <td></td>
+            </tr>
+        </table>
+
+        <span class="label label-success">Swap</span>
+        <table id="swap" class="table table-hover table-striped" style="margin-top: 3px;">
+            <tr>
+                <th width="20%">Total</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Free</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Used</th>
+                <td> </td>
+            </tr>
+            <tr>
+                <th>Percent</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Swapped_in</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Swapped_out</th>
+                <td></td>
+            </tr>
+        </table>
+
+        <span class="label label-success">Disks</span>
+        <table id="disks" class="table table-hover table-striped" style="margin-top: 3px;">
+            <tr>
+                <th></th>
+                <td></td>
+            </tr>
+        </table>
+
+        <span class="label label-success">Users</span>
+        <table id="users" class="table table-hover table-striped" style="margin-top: 3px;">
+            <tr>
+                <th></th>
+                <td></td>
+            </tr>
+        </table>
+
+{% endblock %}
+{% block js %}
+<script>
+$(document).ready(function () {
+    var tCpu = $("#cpu").find('td');
+    var tMemory = $("#memory").find('td');
+    var tSwap = $("#swap").find('td');
+    var tDisks = $("#disks");
+    var tUsers = $("#users");
+
+    function updateRuntimeInfo() {
+        var ip = "{{ server.ip }}";
+        var url = "{% url "runtime_info" %}";
+        $.getJSON(url, {ip: ip}, function (ret) {
+            if (ret.msg == 1) {
+                var users = ret.info.users;
+                var cpu = ret.info.cpu;
+                var memory = ret.info.memory;
+                var swap = ret.info.swap;
+                var disks = ret.info.disks;
+                tCpu.get(0).innerHTML = cpu.load_avg;
+                tCpu.get(1).innerHTML = cpu.user;
+                tCpu.get(2).innerHTML = cpu.system;
+                tCpu.get(3).innerHTML = cpu.idle;
+                tCpu.get(4).innerHTML = cpu.iowait;
+                tMemory.get(0).innerHTML = memory.total;
+                tMemory.get(1).innerHTML = memory.available;
+                tMemory.get(2).innerHTML = memory.used;
+                tMemory.get(3).innerHTML = memory.free;
+                tMemory.get(4).innerHTML = memory.percent;
+                tMemory.get(5).innerHTML = memory.active;
+                tMemory.get(6).innerHTML = memory.inactive;
+                tMemory.get(7).innerHTML = memory.buffers;
+                tMemory.get(8).innerHTML = memory.cached;
+                tSwap.get(0).innerHTML = swap.total;
+                tSwap.get(1).innerHTML = swap.free;
+                tSwap.get(2).innerHTML = swap.used;
+                tSwap.get(3).innerHTML = swap.percent;
+                tSwap.get(4).innerHTML = swap.swapped_in;
+                tSwap.get(5).innerHTML = swap.swapped_out;
+                tUsers.empty();
+                var i;
+                for(i = 0; i < users.length; i++) {
+                    var user = users[i];
+                    tUsers.append('<tr><th>'+user.name+'</th><td>'+user.terminal+'</td><td>'
+                            +user.host+'</td><td>'+user.started+'</td></tr>');
+                }
+                tDisks.empty();
+                for(i = 0; i < disks.length; i++) {
+                    var disk = disks[i];
+                    tDisks.append('<tr><th>'+disk.device+'</th><td>'+disk.mountpoint+'</td><td>'
+                            +disk.type+'</td><td>'+disk.options+'</td><td>'+disk.total+'G'+'</td><td>'
+                            +disk.used+'G'+'</td><td>'+disk.free+'G'+'</td><td>'
+                            +disk.percent+'</td></tr>');
+                }
+                setTimeout(updateRuntimeInfo, 2000);
+            } else {
+
+            }
+        });
+    }
+    setTimeout(updateRuntimeInfo, 100);
+})
+</script>
+{% endblock %}

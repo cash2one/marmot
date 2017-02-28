@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}SpringCloud应用{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ springcloud_app.cluster.get_absolute_url }}">{{ springcloud_app.cluster.name }}</a></li>
+        <li class="active">{{ springcloud_app.name }}</li>
+    </ol>
+
+    {% if perms.springcloud.change_springcloudapp %}
+    <a role="button" class="btn btn-primary" href="{{ springcloud_app.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.springcloud.delete_springcloudapp %}
+    <a role="button" class="btn btn-danger" href="{{ springcloud_app.get_delete_url }}">删除</a>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                    <tr>
+                        <th scope="row">名称</th>
+                        <td>{{ springcloud_app.name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">启动脚本</th>
+                        <td>{{ springcloud_app.startup }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">脚本文件</th>
+                        <td>
+                            {% if springcloud_app.script %}
+                                <a href="{{ springcloud_app.script.url }}">{{ springcloud_app.script_short_name }}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">端口</th>
+                        <td>{{ springcloud_app.port }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">开发者</th>
+                        <td>
+                            {% for d in springcloud_app.develops.all %}
+                                <p>{{ d.get_full_name }}</p>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">创建人</th>
+                        <td>{{ springcloud_app.created_by.get_full_name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">创建时间</th>
+                        <td>{{ springcloud_app.create_time }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">备注</th>
+                        <td>{{ springcloud_app.note }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            {% get_obj_perms request.user for springcloud_app.cluster as "springcloud_cluster_perms" %}
+            <table class="table table-hover" style="margin-top: 3px;">
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>主机</th>
+                        <th>工程目录</th>
+                        <th>应用状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for node in springcloud_app.nodes.all %}
+                        <tr>
+                            <td><a href="{{ node.get_absolute_url }}">{{ node.name }}</a></td>
+                            <td>{{ node.server }}</td>
+                            <td>{{ node.cwd }}</td>
+                            <td>
+                                {% if node.name in alive_apps %}
+                                    <span class="label label-success">active</span>
+                                {% else %}
+                                    <span class="label label-danger">unactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if "operate_springcloudapp" in springcloud_cluster_perms %}
+                                    {% if node.name in alive_apps %}
+                                        <button type='button' class='btn btn-sm btn-danger springcloud-app-kill' value="{{ node.id }}">停止</button>
+                                    {% else %}
+                                        <button type='button' class='btn btn-sm btn-info springcloud-app-sync' value="{{ node.id }}">同步</button>
+                                        <button type='button' class='btn btn-sm btn-success springcloud-app-startup' value="{{ node.id }}">启动</button>
+                                        <button type='button' class='btn btn-sm btn-warning springcloud-app-rollback' value="{{ node.id }}">回滚</button>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="#" class="list-group-item active">基本信息</a>
+                <a href="{% url 'springcloud_file_list' app=springcloud_app.id type=0 %}" class="list-group-item">lib<span class="badge">{{ lib_files_count }}</span></a>
+                <a href="{% url 'springcloud_file_list' app=springcloud_app.id type=1 %}" class="list-group-item">lib/libs<span class="badge">{{ libs_files_count }}</span></a>
+                <a href="{% url 'springcloud_file_list' app=springcloud_app.id type=2 %}" class="list-group-item">config<span class="badge">{{ config_files_count }}</span></a>
+                <a href="{% url 'springcloud_backup_list_view' app=springcloud_app.id %}" class="list-group-item">备份文件<span class="badge">{{ backup_count }}</span></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-log-view" tabindex="-1" role="dialog" aria-labelledby="modal-log-view" aria-hidden="true">
+        <div class="modal-dialog" style="width: 60%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">任务日志</h4>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" id="task-log" cols="40" rows="24" readonly></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-rollback-select" tabindex="-1" role="dialog" aria-labelledby="modal-rollback-select" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">请选择要回滚版本</h4>
+                </div>
+                <div class="modal-body">
+                    <select id="rollback-select" class="form-control">
+                        <option value=""></option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="confirm-rollback">确认</button>
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+{% get_obj_perms request.user for springcloud_app.cluster as "springcloud_cluster_perms" %}
+{% if "operate_springcloudapp" in springcloud_cluster_perms %}
+<script>
+    $(document).ready(function () {
+        var $log = $('#task-log');
+        var modalLogView = $("#modal-log-view");
+
+        var modalRollbackSelect = $("#modal-rollback-select");
+        var $rollbackSelect = $('#rollback-select');
+
+        var intervalId = undefined;
+
+        function getImplementLog(ident) {
+            var url = '{% url "task_implement_log2" %}';
+            $.getJSON(url, {ident: ident}, function (ret) {
+                if (ret.msg) {
+                    for (var i = 0; i < ret.msg.length; i++) {
+                        $log.val($log.val() + ret.msg[i] + '\n');
+                    }
+                }
+            });
+        }
+
+        $('.springcloud-app-rollback').click(function () {
+            var url = '{% url "springcloud_backup_options" %}';
+            $rollbackSelect.empty();
+            $.getJSON(url, {app: {{ springcloud_app.id }}, node: $(this).val()}, function (ret) {
+                var data = ret.data;
+                if (ret.msg == 0 && data) {
+                    for (var i = 0; i < data.length; i++) {
+                        $rollbackSelect.append('<option value="' + data[i].id + '">' + data[i].path + '</option>')
+                    }
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+            modalRollbackSelect.modal('show');
+        });
+
+        $('#confirm-rollback').click(function () {
+            var url = '{% url "springcloud_rollback" %}';
+            var ident = uuid(16, 16);
+            modalRollbackSelect.modal('hide');
+            if ($rollbackSelect.val()) {
+                loading(true);
+                $.getJSON(url, {pk: $rollbackSelect.val(), ident: ident}, function (ret) {
+                    loading(false);
+                    if (ret.msg == 0) {
+                        modalLogView.modal('show');
+                        intervalId = setInterval(function () {
+                            getImplementLog(ident);
+                        }, 1000);
+                    } else {
+                        bootbox.alert(ret.msg);
+                    }
+                });
+            }
+        });
+
+        $('.springcloud-app-startup').click(function () {
+            var url = '{% url "start_springcloud_app" springcloud_app.pk %}';
+            var $this = $(this);
+            bootbox.confirm('确认启动吗？', function (result) {
+                if (result) {
+                    loading(true);
+                    $.getJSON(url, {node: $this.val()}, function (ret) {
+                        loading(false);
+                        if (ret.msg) {
+                            $log.val(ret.msg);
+                            modalLogView.modal('show');
+                        } else {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        });
+
+        $('.springcloud-app-kill').click(function () {
+            var url = '{% url "kill_springcloud_app" springcloud_app.pk %}';
+            var $this = $(this);
+            bootbox.confirm('确认停止吗？', function (result) {
+                if (result) {
+                    loading(true);
+                    $.getJSON(url, {node: $this.val()}, function (ret) {
+                        loading(false);
+                        if (ret.msg) {
+                            $log.val(ret.msg);
+                            modalLogView.modal('show');
+                        } else {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        });
+
+        $(".springcloud-app-sync").click(function () {
+            var url = "{% url 'sync_springcloud_files' springcloud_app.pk %}";
+            var ident = uuid(16, 16);
+            var $this = $(this);
+            bootbox.confirm('确认同步文件到节点吗?', function (result) {
+                if (result) {
+                    loading(true);
+                    $.getJSON(url, {node: $this.val(), ident: ident}, function (ret) {
+                        loading(false);
+                        if (ret.msg == 0) {
+                            modalLogView.modal('show');
+                            intervalId = setInterval(function () {
+                                getImplementLog(ident);
+                            }, 1000);
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+
+        modalLogView.on('hide.bs.modal', function () {
+            $log.val('');
+            if (intervalId !== undefined) {
+                clearInterval(intervalId);
+            }
+            location.reload();
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

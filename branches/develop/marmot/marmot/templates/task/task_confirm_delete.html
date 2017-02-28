@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除任务{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active"><a href="{{ task.get_absolute_url }}">任务：{{ task.name }}</a></li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">确认要删除任务"{{ task.name }}"吗?</div>
+        {% buttons submit="确认" %}{% endbuttons %}
+    </form>
+{% endblock %}

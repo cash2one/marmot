@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load identy %}
+{% block title %}Node源码包列表{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'node_app_list' %}">Node应用列表</a></li>
+        <li class="active">{{ node_app.name }}</li>
+    </ol>
+    {% if perms.nodeapp.add_nodesrcpkg %}
+    <a role="button" class="btn btn-primary" href="{% url 'node_src_pkg_create' pk=node_app.id %}">添加</a>
+    {% endif %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;" id="src-pkg-table">
+                <tbody>
+                <tr>
+                    <th>创建时间</th>
+                    <th>程序包</th>
+                    <th>所属</th>
+                    <th>备注</th>
+                    <th>操作</th>
+                </tr>
+                {% with perms.nodeapp.push_nodesrcpkg as perm_push %}
+                {% for node_src_pkg in page_obj %}
+                    <tr{% if node_src_pkg.active %} class="active" style="font-weight: bold"{% endif %}>
+                        <td>{{ node_src_pkg.create_time }}</td>
+                        <td title="{{ node_src_pkg.package.name }}"><a href="{{ node_src_pkg.get_absolute_url }}">{{ node_src_pkg }}</a></td>
+                        <td>{{ node_src_pkg.created_by.get_full_name }}</td>
+                        <td title="{{ node_src_pkg.note }}">{{ node_src_pkg.note | truncatechars:18 }}</td>
+                        <td>
+                            {% if perm_push %}
+                            <button id="{% gen_uuid4 %}" type='button' class='btn btn-sm btn-success' value="{{ node_src_pkg.id }}">推包</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                {% endwith %}
+                </tbody>
+            </table>
+            <div align="center">
+                {% bootstrap_pagination page_obj url=request.path size="small" %}
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="{{ node_app.get_absolute_url }}" class="list-group-item">基本信息</a>
+                <a href="#" class="list-group-item active">源码包列表<span class="badge">{{ node_app.nodesrcpkg_set.count }}</span></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-log-view" tabindex="-1" role="dialog" aria-labelledby="modal-log-view" aria-hidden="true">
+        <div class="modal-dialog" style="width: 60%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">任务日志</h4>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" id="task-log" cols="40" rows="24" readonly></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
+                </div>s
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+<script>
+    $(document).ready(function () {
+        var url = '{% url "push_node_pkg_log" %}';
+        var $log = $('#task-log');
+        var intervalId = undefined;
+        var modalLogView = $("#modal-log-view");
+
+        function getImplementLog(ident) {
+            $.getJSON(url, {ident: ident}, function (ret) {
+                if (ret.msg) {
+                    for (var i = 0; i < ret.msg.length; i++) {
+                        $log.val($log.val() + ret.msg[i] + '\n');
+                    }
+                }
+            });
+        }
+
+        $("#src-pkg-table").click(function (e) {
+            var url = "{% url 'push_node_src_pkg' %}";
+            var $target = $(e.target);
+            if ($target.is('button')) {
+                bootbox.confirm('确认将此包发送到服务器吗？', function (result) {
+                    if (result) {
+                        var pkgId = $target.val();
+                        var ident = $target.attr('id');
+                        loading(true);
+                        $.getJSON(url, {ident: ident, pkgId: pkgId}, function (ret) {
+                            loading(false);
+                            if (ret.msg == 0) {
+                                intervalId = setInterval(function () {
+                                    getImplementLog(ident);
+                                }, 1000);
+                                modalLogView.modal('show')
+                            } else {
+                                bootbox.alert(ret.msg);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        modalLogView.on('hide.bs.modal', function (e) {
+          if (intervalId !== undefined) {
+              clearInterval(intervalId);
+              location.reload();
+          }
+        });
+    });
+</script>
+{% endblock %}

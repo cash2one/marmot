@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除Tomcat服务器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active"><a href="{{ tomcat_server.get_absolute_url }}">Tomcat服务器：{{ tomcat_server.name }}</a></li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">确认要删除Tomcat服务器"{{ tomcat_server.name }}"吗?</div>
+        {% buttons submit="确认" %}{% endbuttons %}
+    </form>
+{% endblock %}

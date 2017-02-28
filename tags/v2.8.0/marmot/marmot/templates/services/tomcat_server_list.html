@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Tomcat服务器列表{% endblock %}
+{% block content %}
+    {% if perms.services.add_tomcatserver %}
+        <a role="button" class="btn btn-primary" href="{% url 'tomcat_server_create' %}">新建Tomcat服务器</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+        <tr>
+            <th>名称</th>
+            <th>位置</th>
+            <th>端口</th>
+            <th>命令</th>
+            <th>备注</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for server in tomcat_server_list %}
+            <tr>
+                <td><a href="{{ server.get_absolute_url }}">{{ server.name }}</a></td>
+                <td>{{ server.host }}</td>
+                <td>{{ server.port }}</td>
+                <td>{{ server.cmd }}</td>
+                <td>{{ server.note }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

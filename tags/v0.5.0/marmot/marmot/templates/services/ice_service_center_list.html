@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}ICE注册中心列表{% endblock %}
+{% block content %}
+    {% if has_perm_add_center %}
+    <a role="button" class="btn btn-primary" href="{% url 'ice_service_center_create' %}">新建ICE注册中心</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>位置(主)</th>
+                <th>位置(从)</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ice_service_center in ice_service_center_list %}
+                <tr>
+                    <td><a href="{{ ice_service_center.get_absolute_url }}">{{ ice_service_center.name }}</a></td>
+                    <td>{{ ice_service_center.master_server.hostname }} - {{ ice_service_center.master_server.listen_ip }}</td>
+                    <td>{{ ice_service_center.slave_server.hostname }} - {{ ice_service_center.slave_server.listen_ip }}</td>
+                    <td>{{ ice_service_center.note }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

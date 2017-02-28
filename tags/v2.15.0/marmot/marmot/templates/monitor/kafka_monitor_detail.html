@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Kafka监控器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'kafka_monitor_list_view' %}">Kafka监控器列表</a></li>
+        <li class="active">Kafka监控器：{{ kafka_monitor.name }}</li>
+    </ol>
+
+    {% include "_messages.html" %}
+
+    {% if perms.monitor.change_kafkamonitor %}
+    <a role="button" class="btn btn-primary" href="{{ kafka_monitor.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.monitor.delete_kafkamonitor %}
+    <a role="button" class="btn btn-danger" href="{{ kafka_monitor.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row" style="width: 20%">名称</th>
+                <td>{{ kafka_monitor.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">zk地址</th>
+                <td>{{ kafka_monitor.addr }}</td>
+            </tr>
+            <tr>
+                <th scope="row">ids</th>
+                <td>{{ kafka_monitor.ids }}</td>
+            </tr>
+            <tr>
+                <th scope="row">replicas</th>
+                <td>{{ kafka_monitor.replicas }}</td>
+            </tr>
+            <tr>
+                <th scope="row">isr</th>
+                <td>{{ kafka_monitor.isr }}</td>
+            </tr>
+            <tr>
+                <th scope="row">状态</th>
+                <td>{% bootstrap_span_custom kafka_monitor.active "开启/关闭" %}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ kafka_monitor.created_by.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ kafka_monitor.create_time }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td><pre class="pre-note">{{ kafka_monitor.note }}</pre></td>
+            </tr>
+            <tr>
+                <th scope="row">当前ids值</th>
+                <td>{{ now_ids }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="table table-hover table-bordered" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th width="20%">topic</th>
+                <th>partition</th>
+                <th>leader</th>
+                <th>replicas</th>
+                <th>isr</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for k, vs in topics.items %}
+                {% for v in vs %}
+                <tr>
+                    {% if forloop.first %}
+                    <th rowspan="{{ vs|length }}">{{ k }}</th>
+                    {% endif %}
+                    <td>{{ v.partition }}</td>
+                    <td>{{ v.leader }}</td>
+                    <td>{{ v.replicas }}</td>
+                    <td>{{ v.isr }}</td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

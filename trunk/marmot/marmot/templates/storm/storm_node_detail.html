@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}Storm服务器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ storm_node.cluster.get_absolute_url }}">Storm集群：{{ storm_node.cluster.name }}</a></li>
+        <li class="active">Storm服务器：{{ storm_node.name }}</li>
+    </ol>
+
+    {% include "_messages.html" %}
+    {% if perms.storm.change_stormnode %}
+        <a role="button" class="btn btn-primary" href="{{ storm_node.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.storm.delete_stormnode %}
+        <a role="button" class="btn btn-danger" href="{{ storm_node.get_delete_url }}">删除</a>
+    {% endif %}
+   	{% get_obj_perms request.user for storm_node.cluster as "storm_cluster_perms" %}
+    {% if "operate_storm_node" in storm_cluster_perms %}
+	    {% if storm_node.is_alive %}
+	        <button type='button' class='btn btn-warning' id="node-stop">停止</button>
+	    {% else %}
+	        <button type='button' class='btn btn-success' id="node-start">启动</button>
+	    {% endif %}
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ storm_node.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">位置</th>
+                <td>{{ storm_node.host }}</td>
+            </tr>
+            <tr>
+                <th scope="row">类型</th>
+                <td>{{ storm_node.type }} </td>
+            </tr>
+            <tr>
+                <th scope="row">状态</th>
+                <td>
+                    {% bootstrap_span_state storm_node.is_alive content_type=1 %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ storm_node.note }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ storm_node.user.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ storm_node.create_time | date:"Y-m-d H:i:s" }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% if storm_node.type == 'nimbus' %}
+	    {% if perms.storm.add_stormnodejardir %}
+	        <a role="button" class="btn btn-primary" href="{% url 'storm_node_jar_dir_create' storm_node.id %}">添加Jar包目录</a>
+	    {% endif %}
+	    <table class="table table-hover table-striped" style="margin-top: 3px;">
+	        <thead>
+	            <tr>
+	                <th>Jar包目录</th>
+	                <th>备注</th>
+	                <th>操作</th>
+	            </tr>
+	        </thead>
+	        <tbody>
+	        {% for dir in storm_node.stormnodejardir_set.all %}
+	            <tr>
+	                <td>{{ dir.jar_dir }}</td>
+	                <td>{{ dir.note }}</td>
+	                <td>
+	                    {% if perms.storm.change_stormnodejardir %}
+	                    <a role="button" class="btn btn-sm btn-info" href="{{ dir.get_update_url }}">编辑</a>
+	                    {% endif %}
+	                    {% if perms.storm.delete_stormnodejardir %}
+	                    <a role="button" class="btn btn-sm btn-danger" href="{{ dir.get_delete_url }}">删除</a>
+	                    {% endif %}
+	                </td>
+	            </tr>
+	        {% endfor %}
+	        </tbody>
+	    </table>
+    {% endif %}
+{% endblock %}
+{% block js %}
+<script>
+    $(document).ready(function () {
+        $('#node-start').click(function () {
+            bootbox.confirm('确认启动Storm节点吗？', function (result) {
+                if (result) {
+                    var url = "{% url 'storm_node_switch' storm_node.id %}";
+                    $.getJSON(url, {state: 'start'}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.reload();
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#node-stop').click(function () {
+            bootbox.confirm('确认停止Storm节点吗？', function (result) {
+                if (result) {
+                    var url = "{% url 'storm_node_switch' storm_node.id %}";
+                    $.getJSON(url, {state: 'stop'}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.reload();
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Storm服务器列表{% endblock %}
+{% block content %}
+    {% if perms.storm.add_stormnode %}
+        <a role="button" class="btn btn-primary" href="{% url 'storm_node_create'  %}">新建Storm服务器</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+        <tr>
+            <th>名称</th>
+            <th>位置</th>
+            <th>端口</th>
+            <th>命令</th>
+            <th>备注</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for node in storm_node_list %}
+            <tr>
+                <td><a href="{{ node.get_absolute_url }}">{{ node.name }}</a></td>
+                <td>{{ node.host }}</td>
+                <td>{{ node.port }}</td>
+                <td>{{ node.cmd }}</td>
+                <td>{{ node.note }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

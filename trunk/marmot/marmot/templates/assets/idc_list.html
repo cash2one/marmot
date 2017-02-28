@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}机房列表{% endblock %}
+{% block content %}
+    {% if perms.assets.add_idc %}
+    <a role="button" class="btn btn-primary" href="{% url 'idc_create' %}">新建机房</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>类型</th>
+                <th>地址</th>
+                <th>联系人</th>
+                <th>联系电话</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for idc in idc_list %}
+                <tr>
+                    <td><a href="{{ idc.get_absolute_url }}">{{idc.name}}</a></td>
+                    <td>{{idc.type}}</td>
+                    <td>{{idc.addr}}</td>
+                    <td>{{idc.contact}}</td>
+                    <td>{{idc.phone}}</td>
+                    <td>{{idc.note}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

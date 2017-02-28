@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}任务日志{% endblock %}
+{% block content %}
+    <style type="text/css">
+    #task-log {
+        margin-top: 3px;
+        background-color: #0d1318;
+        font-size: large;
+        color: white;
+    }
+    </style>
+    <textarea class="form-control" id="task-log" cols="40" rows="40" readonly></textarea>
+{% endblock %}
+{% block js %}
+<script>
+    $(document).ready(function () {
+        var url = '{% url "task_implement_log" identifier %}';
+        var oLog = $('#task-log');
+        function getImplementLog() {
+            $.getJSON(url, {}, function (ret) {
+                if (ret.msg) {
+                    for (var i = 0; i < ret.msg.length; i++) {
+                        oLog.val(oLog.val() + ret.msg[i] + '\n');
+                    }
+                }
+                setTimeout(getImplementLog, 1000);
+            });
+        }
+        setTimeout(getImplementLog, 500);
+    });
+</script>
+{% endblock %}

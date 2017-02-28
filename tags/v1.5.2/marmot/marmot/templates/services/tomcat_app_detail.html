@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load guardian_tags %}
+{% block title %}Tomcat应用{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app.tomcat_server.get_absolute_url }}">Tomcat服务器：{{ tomcat_app.tomcat_server.name }}</a></li>
+        <li>Tomcat应用：{{ tomcat_app.name }}</li>
+    </ol>
+    {% if perms.services.change_tomcatapp %}
+    <a role="button" class="btn btn-primary" href="{{ tomcat_app.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.services.delete_tomcatapp %}
+    <a role="button" class="btn btn-danger" href="{{ tomcat_app.get_delete_url }}">删除</a>
+    {% endif %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                    <tr>
+                        <th scope="row" style="width: 20%">名称</th>
+                        <td>{{ tomcat_app.name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">War包目录</th>
+                        <td>{{ tomcat_app.war_dir }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">数据库名</th>
+                        <td>{{ tomcat_app.db_name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">数据库地址</th>
+                        <td>{{ tomcat_app.db_ip }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">数据库端口</th>
+                        <td>{{ tomcat_app.db_port }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">数据库账号</th>
+                        <td>{{ tomcat_app.db_user }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">备注</th>
+                        <td>{{ tomcat_app.note }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">创建时间</th>
+                        <td>{{ tomcat_app.create_time }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="#" class="list-group-item active">基本信息</a>
+                <a href="{% url 'tomcat_app_war_list' tomcat_app_id=tomcat_app.id %}" class="list-group-item">War包列表<span class="badge">{{ tomcat_app.tomcatappwar_set.count }}</span></a>
+                <a href="{% url 'tomcat_app_sql_list' tomcat_app_id=tomcat_app.id %}" class="list-group-item">Sql文件列表<span class="badge">{{ tomcat_app.tomcatappsql_set.count }}</span></a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

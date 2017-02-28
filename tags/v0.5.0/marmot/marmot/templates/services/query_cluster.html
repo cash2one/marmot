@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}集群{% endblock %}
+{% block content %}
+    <form action="/services/query_wcluster/" method="GET">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="input-group">
+                <select class="form-control" name="name" id="select_service">
+                    {% for service in services %}
+                        <option value="{{service.name}}">{{service.name}}</option>
+                    {% endfor %}
+                </select>
+                <span class="input-group-btn">
+                    <button class="btn btn-primary" type="submit">查询</button>
+                </span>
+                </div>
+            </div>
+        </div>
+    </form>
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>集群名</th>
+                <th>集群类型</th>
+                <th>端口</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {%for cluster in page%}
+            <tr>
+                <td>{{cluster.name}}</td>
+                <td>{{cluster.service}}</td>
+                <td>{{cluster.service.ports}}</td>
+                <td>{{cluster.ext}}</td>
+            </tr>
+            {%endfor%}
+        </tbody>
+    </table>
+	<nav>
+		{%if page %}
+			<ul class="pagination">
+				{% if page.has_previous %}
+					<li><a href="/services/query_wcluster/?name={{checked_name}}&page={{page.previous_page_number }}">&laquo;</a></li>
+				{% else %}
+					<li><a href="#">&laquo;</a></li>
+				{% endif %}
+					<li><a href="/services/query_wcluster/?name={{checked_name}}&page={{page.number}}">{{page.number}}</a></li>
+				{% if page.has_next %}
+					<li><a href="/services/query_wcluster/?name={{checked_name}}&page={{page.next_page_number }}">&raquo;</a></li>
+				{% else %}
+					<li><a href="#">&raquo;</a></li>
+				{% endif %}
+			</ul>
+		{% endif %}
+	</nav>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function(){
+	$("#select_service").val("{{checked_name}}");
+});
+</script>
+{% endblock %}

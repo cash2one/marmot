@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}Tomcat应用Sql文件{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app.cluster.get_absolute_url }}">Tomcat集群：{{ tomcat_app.cluster.name }}</a></li>
+        <li>Tomcat应用：{{ tomcat_app.name }}</li>
+    </ol>
+    {% if perms.services.add_tomcatappsql %}
+    <a role="button" class="btn btn-primary" href="{% url 'tomcat_app_sql_create' tomcat_app.id %}">添加</a>
+    {% endif %}
+    {% get_obj_perms request.user for tomcat_app.cluster as "tomcat_cluster_perms" %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                    <tr>
+                        <th>创建时间</th>
+                        <th>sql文件</th>
+                        <th>数据库</th>
+                        <th>状态</th>
+                        <th>所属</th>
+                        <th>备注</th>
+                        <th>操作</th>
+                    </tr>
+                    {% for sql in page_obj %}
+                        <tr>
+                            <td>{{ sql.create_time|date:"Y-m-d H:i:s" }}</td>
+                            <td title="{{ sql }}"><a href="{{ sql.get_absolute_url }}">{{ sql | truncatechars:18  }}</a></td>
+                            <td>{{ sql.db.name}}</td>
+                            <td>{{ sql.get_state_display }}</td>
+                            <td>{{ sql.user.get_full_name }}</td>
+                            <td title="{{ sql.note }}">{{ sql.note | truncatechars:18 }}</td>
+                            <td>
+                            {% if user.profile.role.alias == "developer" and sql.sys_bak %}
+                            {% else %}
+                                {% if user.profile.role.alias == "CPIS" %}
+                                    {% if "execute_sql" in tomcat_cluster_perms and sql.is_executable %}
+                                    <button type='button' class='btn btn-sm btn-success execute-sql' value="{% url "execute_sql" sql.id %}">执行</button>
+                                    {% endif %}
+                                {% elif user.profile.role.alias == "developer" %}
+                                    {% if "execute_sql" in tomcat_cluster_perms and not sql.sys_bak and sql.is_executable %}
+                                    <button type='button' class='btn btn-sm btn-success execute-sql' value="{% url "execute_sql" sql.id %}">执行</button>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div align="center">
+                {% bootstrap_pagination page_obj url=request.path size="small" %}
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="{{ tomcat_app.get_absolute_url }}" class="list-group-item">基本信息</a>
+                <a href="{% url 'tomcat_app_war_list' tomcat_app.id %}" class="list-group-item">War包列表<span class="badge">{{ tomcat_app.tomcatappwar_set.count }}</span></a>
+                <a href="{% url 'tomcat_app_static_list' tomcat_app.id %}" class="list-group-item">静态文件列表<span class="badge">{{ tomcat_app.tomcatappstatic_set.count }}</span></a>
+                <a href="#" class="list-group-item active">Sql文件列表<span class="badge">{{ tomcat_app.tomcatappsql_set.count }}</span></a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+{% get_obj_perms request.user for tomcat_app.cluster as "tomcat_cluster_perms" %}
+{% if "operate_db" in tomcat_cluster_perms %}
+<script>
+    $(document).ready(function () {
+        $('.execute-sql').click(function () {
+            var url = $(this).val();
+            bootbox.confirm('确认执行sql吗？', function (result) {
+                if (result) {
+                    $.getJSON(url, {}, function (ret) {
+                        if (ret.msg == 0) {
+                            bootbox.alert('已经添加到任务队列中!');
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block title %}脚本列表{% endblock %}
+{% block content %}
+    {% if has_perm_add_script %}
+        <a role="button" class="btn btn-primary" href="{% url 'script_create' %}">添加脚本</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>脚本</th>
+                <th>运行位置</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for script in script_list %}
+                <tr>
+                    <td><a href="{{ script.get_absolute_url }}">{{ script.name }}</a></td>
+                    <td>{{ script.filename }}</td>
+                    <td>{{ script.server.listen_ip }}</td>
+                    <td>{{ script.owner.get_short_name }}</td>
+                    <td>{{ script.create_time }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div align="center">
+        {% bootstrap_pagination page_obj url=request.path size="small" %}
+    </div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}Storm应用Jar包{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ storm_app.cluster.get_absolute_url }}">Storm集群：{{ storm_app.cluster.name }}</a></li>
+        <li class="active"><a href="{{ storm_app.get_absolute_url }}">Storm应用：{{ storm_app.name }}</a></li>
+    </ol>
+    {% if perms.storm.add_stormappjar %}
+    <a role="button" class="btn btn-primary" href="{% url 'storm_app_jar_create' storm_app.id %}">添加</a>
+    {% endif %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                <tr>
+                    <th>创建时间</th>
+                    <th>Jar包</th>
+                    <th>状态</th>
+                    <th>激活</th>
+                    <th>所属</th>
+                    <th>备注</th>
+                    <th>操作</th>
+                </tr>
+                {% for jar in page_obj %}
+                    <tr>
+                        <td>{{ jar.create_time|date:"Y-m-d H:i:s" }}</td>
+                        <td title="{{ jar }}">{% if jar.is_ready %}<a href="{{ jar.package.url }}">{{ jar | truncatechars:20 }}</a>{% else %}{{ jar | truncatechars:20 }}{% endif %}</td>
+                        <td>{{ jar.get_state_display }}</td>
+                        <td>
+                            {% if jar.active %}
+                                <span class="label label-success">是</span>
+                            {% else %}
+                                <span class="label label-danger">否</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ jar.user.get_full_name }}</td>
+                        <td title="{{ jar.note }}">{{ jar.note | truncatechars:18 }}</td>
+                        <td>
+                            <button type='button' class='btn btn-sm btn-success' onclick='activeConfirm("{{ jar.get_active_url }}")' {% if jar.active %}disabled{% endif %}>激活</button>
+                            {% if perms.storm.change_stormappjar %}
+                            <a role="button" class="btn btn-sm btn-info" href="{{ jar.get_update_url }}">编辑</a>
+                            {% endif %}
+                            {% if perms.services.delete_stormappjar %}
+                            <a role="button" class="btn btn-sm btn-danger" href="{{ jar.get_delete_url }}">删除</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div align="center">
+                {% bootstrap_pagination page_obj url=request.path size="small" %}
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="{{ storm_app.get_absolute_url }}" class="list-group-item">基本信息</a>
+                <a href="#" class="list-group-item active">Jar包列表<span class="badge">{{ storm_app.stormappjar_set.count }}</span></a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

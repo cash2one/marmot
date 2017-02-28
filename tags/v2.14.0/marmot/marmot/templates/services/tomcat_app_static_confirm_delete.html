@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除Tomcat应用静态文件{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app_static.tomcat_app.cluster.get_absolute_url }}">Tomcat服务器：{{ tomcat_app_static.tomcat_app.cluster.name }}</a></li>
+        <li class="active"><a href="{{ tomcat_app_static.tomcat_app.get_absolute_url }}">{{ tomcat_app_static.tomcat_app.name }}</a></li>
+    </ol>
+    {% if tomcat_app_static.active %}
+        <div class="alert alert-warning" role="alert">不能删除处于激活状态的文件包</div>
+        <a class="btn btn-primary" href="{% url 'tomcat_app_static_list' tomcat_app_static.tomcat_app.id %}">确认</a>
+    {% else %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">确认要删除静态文件包 "{{ tomcat_app_static.package }}" 吗?</div>
+        <button class="btn btn-primary" type="submit">确认</button>
+        <a class="btn btn-warning" href="{% url 'tomcat_app_static_list' tomcat_app_static.tomcat_app.id %}">取消</a>
+    </form>
+    {% endif %}
+{% endblock %}

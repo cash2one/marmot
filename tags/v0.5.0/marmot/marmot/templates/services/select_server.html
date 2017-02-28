@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}选择主机{% endblock %}
+{% block content %}
+    <form class="form-horizontal" method="POST">
+        {% if err %}<div class="alert alert-warning" role="alert">{{ err|safe }}</div>{% endif %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="select_server" class="col-sm-6 control-label">主机监听IP</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="select_server" name="server_ip" value="{{rule.cpu_use_gt}}">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary">选择主机</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

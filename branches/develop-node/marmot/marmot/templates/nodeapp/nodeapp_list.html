@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block title %}Node应用列表{% endblock %}
+{% block content %}
+    {% if perms.nodeapp.add_nodeapp %}
+        <a role="button" class="btn btn-primary" href="{% url 'node_app_create' %}">新建Node应用</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>服务器</th>
+                <th>工作目录</th>
+                <th>状态</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for nodeapp in nodeapp_list %}
+                <tr>
+                    <td><a href="{{ nodeapp.get_absolute_url }}">{{ nodeapp }}</a></td>
+                    <td>{{ nodeapp.server }}</td>
+                    <td>{{ nodeapp.cwd }}</td>
+                    <td>{% bootstrap_span_custom nodeapp.is_alive "active/inactive" %}</td>
+                    <td>{{ nodeapp.created_by }}</td>
+                    <td>{{ nodeapp.create_time }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div align="center">
+        {% bootstrap_pagination page_obj url=request.path size="small" %}
+    </div>
+{% endblock %}

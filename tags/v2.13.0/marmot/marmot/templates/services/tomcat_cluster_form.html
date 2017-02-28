@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Tomcat集群{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        {% if "/tomcat-cluster/create" in request.path %}
+            <li><a href="{{ group.get_absolute_url }}">Tomcat组：{{ group.name }}</a></li>
+            <li class="active">添加Tomcat集群</li>
+        {% else %}
+            <li><a href="{{ tomcat_cluster.group.get_absolute_url }}">Tomcat组：{{ tomcat_cluster.group.name }}</a></li>
+            <li class="active">更新Tomcat集群：{{ tomcat_cluster.name }}</li>
+        {% endif %}
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+{% endblock %}

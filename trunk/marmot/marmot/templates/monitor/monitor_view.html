@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+    <style type="text/css">
+    #monitor-info {
+        background-color: #002B36;
+        font-size: large;
+        min-height: 768px;
+        white-space: pre-wrap;
+    }
+    </style>
+
+    <ol class="breadcrumb">
+        <li class="active"><a href="{{ object.get_absolute_url }}">{{ object.modal_description }}：{{ object }}</a></li>
+    </ol>
+
+    {% include "_messages.html" %}
+
+    <pre id="monitor-info">{{ monitor_info }}</pre>
+{% endblock %}
+{% block js %}
+<script>
+$(document).ready(function () {
+    setInterval(function () {
+        location.reload();
+    }, 1000*15)
+});
+</script>
+{% endblock %}

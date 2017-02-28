@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除Tomcat应用Sql文件{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app_sql.tomcat_app.cluster.get_absolute_url }}">Tomcat服务器：{{ tomcat_app_sql.tomcat_app.cluster.name }}</a></li>
+        <li class="active"><a href="{{ tomcat_app_sql.tomcat_app.get_absolute_url }}">Tomcat应用：{{ tomcat_app_sql.tomcat_app.name }}</a></li>
+    </ol>
+    {% if tomcat_app_sql.is_ready %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="alert alert-danger" role="alert">确认要删除sql文件 "{{ tomcat_app_sql.sql.name }}" 吗?</div>
+            <button class="btn btn-primary" type="submit">确认</button>
+            <a class="btn btn-warning" href="{% url 'tomcat_app_sql_list' tomcat_app_sql.tomcat_app.id %}">取消</a>
+        </form>
+    {% else %}
+        <div class="alert alert-info" role="alert">这个sql正在后台执行, 暂时不能删除!</div>
+    {% endif %}
+{% endblock %}

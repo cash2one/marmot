@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}移除监控器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ process_monitor.server.get_absolute_url }}">{{ process_monitor.server }}</a></li>
+        <li class="active"><a href="{{ process_monitor.get_absolute_url }}">{{ process_monitor.name }}</a></li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">
+            确认要移除监控器"{{ process_monitor.name }}"吗?
+        </div>
+        {% buttons submit="确认" %}{% endbuttons %}
+    </form>
+{% endblock %}

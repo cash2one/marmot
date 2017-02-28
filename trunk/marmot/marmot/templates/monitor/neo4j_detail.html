@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Neo4j监控器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active">Neo4j监控器：{{ neo4j_monitor.name }}</li>
+    </ol>
+
+    {% if perms.monitor.change_neo4jmonitor %}
+    <a role="button" class="btn btn-primary" href="{{ neo4j_monitor.get_update_url }}">编辑</a>
+    {% endif %}
+    <a role="button" class="btn btn-info" href="{{ neo4j_monitor.get_monitor_url }}">监视</a>
+    {% if perms.monitor.delete_neo4jmonitor %}
+    <a role="button" class="btn btn-danger" href="{{ neo4j_monitor.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ neo4j_monitor.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">主机</th>
+                <td>{{ neo4j_monitor.host }}</td>
+            </tr>
+            <tr>
+                <th scope="row">端口</th>
+                <td>{{ neo4j_monitor.port }}</td>
+            </tr>
+            <tr>
+                <th scope="row">状态</th>
+                <td>{% bootstrap_span_custom neo4j_monitor.active "开启/关闭" %}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ neo4j_monitor.created_by.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ neo4j_monitor.create_time }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ neo4j_monitor.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

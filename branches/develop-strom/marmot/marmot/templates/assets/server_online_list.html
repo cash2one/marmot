@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load myfilter %}
+{% block title %}在线主机{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ cabinet.idc.get_absolute_url }}">{{ cabinet.idc.name }}</a></li>
+        <li><a href="{{ cabinet.get_absolute_url }}">机柜：{{ cabinet.num }}</a></li>
+        <li class="active">在线主机</li>
+    </ol>
+
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>主机</th>
+                <th>ip</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ip, hostname in servers_online.items %}
+                <tr>
+                    <td>{{ hostname }}</td>
+                    <td>{{ ip }}</td>
+                    <td>
+                    {% if ip in servers_added %}
+                        <a href="{% url "server_detail" servers_added|get_dict_val:ip %}">查看</a>
+                    {% else %}
+                        <a href="{% url "server_add" cabinet.id %}?ip={{ ip }}">添加</a>
+                    {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

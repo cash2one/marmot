@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}机房 - {{ idc.name }}{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ idc.get_absolute_url }}">{{ idc.name }}</a></li>
+    </ol>
+    {% if perms.assets.change_idc %}
+    <a role="button" class="btn btn-primary" href="{{ idc.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.assets.delete_idc %}
+    <a role="button" class="btn btn-danger" href="{{ idc.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ idc.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">类型</th>
+                <td>{{ idc.type }}</td>
+            </tr>
+            <tr>
+                <th scope="row">地址</th>
+                <td>{{ idc.addr }}</td>
+            </tr>
+            <tr>
+                <th scope="row">联系人</th>
+                <td>{{ idc.contact}}</td>
+            </tr>
+            <tr>
+                <th scope="row">联系电话</th>
+                <td>{{ idc.phone }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ idc.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% if perms.assets.add_cabinet %}
+    <a role="button" class="btn btn-primary" href="{% url 'cabinet_create' idc.id %}">添加机柜</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>机柜编号</th>
+                <th>机柜容量</th>
+                <th>已用数量</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cab in idc.cabinet_set.all %}
+                <tr>
+                    <td><a href="{{ cab.get_absolute_url }}">{{ cab.num }}</a></td>
+                    <td>{{ cab.total_capacity }}</td>
+                    <td>{{ cab.used_capacity }}</td>
+                    <td>{{ cab.note }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

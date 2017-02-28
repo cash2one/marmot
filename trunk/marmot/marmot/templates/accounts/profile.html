@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}个人信息{% endblock %}
+{% block content %}
+    <table class="table table-bordered table-hover" style="margin-top: 5px;">
+        <tbody>
+            <tr>
+                <th scope="row">姓名</th>
+                <td>{{ user.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">账号</th>
+                <td>{{ user.username }}</td>
+            </tr>
+            <tr>
+                <th scope="row">角色</th>
+                <td>{{ user.profile.role.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">电话</th>
+                <td>{{ user.profile.cell}}</td>
+            </tr>
+            <tr>
+                <th scope="row">邮箱</th>
+                <td>{{ user.email }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

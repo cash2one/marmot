@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}ICE服务{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        {% if "/ice-service/create" in request.path %}
+            <li><a href="{{ center.get_absolute_url }}">ICE注册中心：{{ center.name }}</a></li>
+            <li class="active">添加ICE服务</li>
+        {% else %}
+            <li><a href="{{ ice_service.center.get_absolute_url }}">ICE注册中心：{{ ice_service.center.name }}</a></li>
+            <li class="active">更新ICE服务：{{ ice_service.name }}</li>
+        {% endif %}
+    </ol>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+
+{% endblock %}

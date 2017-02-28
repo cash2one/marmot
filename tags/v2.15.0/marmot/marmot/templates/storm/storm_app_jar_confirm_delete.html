@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除Storm应用Jar包{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ storm_app_jar.storm_app.node.get_absolute_url }}">Storm服务器：{{ storm_app_jar.storm_app.node.name }}</a></li>
+        <li class="active"><a href="{{ storm_app_jar.storm_app.get_absolute_url }}">{{ storm_app_jar.storm_app.name }}</a></li>
+    </ol>
+    {% ifnotequal storm_app_jar.state 1 %}
+        {% if storm_app_jar.active %}
+            <div class="alert alert-warning" role="alert">不能删除处于激活状态的Jar包</div>
+            <a class="btn btn-primary" href="{% url 'storm_app_jar_list' storm_app_jar.storm_app.id %}">确认</a>
+        {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="alert alert-danger" role="alert">确认要删除Jar包 "{{ storm_app_jar.url }}" 吗?</div>
+            <button class="btn btn-primary" type="submit">确认</button>
+            <a class="btn btn-warning" href="{% url 'storm_app_jar_list' storm_app_jar.storm_app.id %}">取消</a>
+        </form>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-warning" role="alert">这个Jar包正在后台下载, 暂时不能删除!</div>
+    {% endifnotequal %}
+{% endblock %}

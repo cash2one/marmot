@@ -1,0 +1,7 @@
+Django==1.8.17
+django-guardian==1.4.6
+MySQL-python==1.2.5
+redis==2.10.5
+redis-py-cluster==1.2.0
+requests==2.12.3
+zeroc-ice==3.6.3

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}机柜 - {{ cabinet.num }}{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ cabinet.idc.get_absolute_url }}">{{ cabinet.idc.name }}</a></li>
+        <li class="active">机柜：{{ cabinet.num }}</li>
+    </ol>
+
+    <a role="button" class="btn btn-primary" href="{{ cabinet.get_update_url }}">编辑</a>
+    <a role="button" class="btn btn-primary" href="{{ cabinet.get_delete_url }}">删除</a>
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">机柜编号</th>
+                <td>{{ cabinet.num }}</td>
+            </tr>
+            <tr>
+                <th scope="row">容量</th>
+                <td>{{ cabinet.total_capacity}}</td>
+            </tr>
+            <tr>
+                <th scope="row">已用容量</th>
+                <td>{{ cabinet.used_capacity }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ cabinet.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a role="button" class="btn btn-primary" href="{% url "server_online_list" %}?cabinet={{ cabinet.id }}">添加主机</a>
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>主机名</th>
+                <th>IP</th>
+                <th>状态</th>
+                <th>产品型号</th>
+                <th>CPU逻辑内核数</th>
+                <th>内存(G)</th>
+                <th>磁盘(G)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for server in server_list %}
+            <tr>
+                <td><a href="{{ server.get_absolute_url }}">{{ server.hostname }}</a></td>
+                <td>{{ server.ip }}</td>
+                <td>
+                    {% if server.ip in servers_online %}
+                        <span class="label label-success">在线</span>
+                    {% else %}
+                        <span class="label label-danger">离线</span>
+                    {% endif %}
+                </td>
+                <td>{{ server.product_model }}</td>
+                <td>{{ server.cpu_logic_nums }}</td>
+                <td>{{ server.mem_size }}</td>
+                <td>{{ server.disk_size }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a role="button" class="btn btn-primary" href="{{ cabinet.get_create_network_device_url }}">添加网络设备</a>
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>设备编号</th>
+                <th>设备位置</th>
+                <th>厂商</th>
+                <th>型号</th>
+                <th>类型</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for device in network_device_list %}
+                <tr>
+                    <td><a href="{{ device.get_absolute_url }}">{{device.num}}</a></td>
+                    <td>{{device.position}}</td>
+                    <td>{{device.manufacturer}}</td>
+                    <td>{{device.device_model}}</td>
+                    <td>{{device.get_device_type_display}}</td>
+                    <td>{{device.note}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

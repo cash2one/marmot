@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}SpringCloud文件{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ springcloud_app.cluster.get_absolute_url }}">{{ springcloud_app.cluster.name }}</a></li>
+        <li class="active">{{ springcloud_app.name }}</li>
+    </ol>
+
+    {% get_obj_perms request.user for springcloud_app.cluster as "springcloud_cluster_perms" %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-hover table-striped" style="margin-top: 3px;" id="spring-cloud-backup-table">
+                <thead>
+                    <tr>
+                        <th>创建时间</th>
+                        <th>备份路径</th>
+                        <th>节点</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scb in page_obj %}
+                        <tr>
+                            <td>{{ scb.create_time }}</td>
+                            <td>{{ scb.path }}</td>
+                            <td>{{ scb.node }}</td>
+                            <td>
+                                {% if "delete_springcloudapp_files" in springcloud_cluster_perms %}
+                                <button type='button' class='btn btn-sm btn-danger' value="{{ scb.pk }}">删除</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div align="center">
+                {% bootstrap_pagination page_obj url=request.path size="small" %}
+            </div>
+        </div>
+
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="{{ springcloud_app.get_absolute_url }}" class="list-group-item">基本信息</a>
+                <a href="{% url 'springcloud_file_list' app=springcloud_app.id type=0 %}" class="list-group-item">lib<span class="badge">{{ lib_files_count }}</span></a>
+                <a href="{% url 'springcloud_file_list' app=springcloud_app.id type=1 %}" class="list-group-item">lib/libs<span class="badge">{{ libs_files_count }}</span></a>
+                <a href="{% url 'springcloud_file_list' app=springcloud_app.id type=2 %}" class="list-group-item">config<span class="badge">{{ config_files_count }}</span></a>
+                <a href="#" class="list-group-item active">备份文件<span class="badge">{{ backup_count }}</span></a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+<script>
+    $(document).ready(function () {
+        $("#spring-cloud-backup-table").click(function (e) {
+            var url = "{% url 'springcloud_backup_delete' %}";
+            var $target = $(e.target);
+            if ($target.is('button')) {
+                bootbox.confirm('确认删除这个备份吗?', function (result) {
+                    if (result) {
+                        loading(true);
+                        $.getJSON(url, {pk: $target.val()}, function (ret) {
+                            loading(false);
+                            if (ret.msg == 0) {
+                                location.reload();
+                            } else {
+                                bootbox.alert(ret.msg, function () {
+                                    location.reload();
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

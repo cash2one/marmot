@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Tomcat组{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active">Tomcat组：{{ tomcat_group.name }}</li>
+    </ol>
+
+    {% if perms.services.change_tomcatgroup %}
+    <a role="button" class="btn btn-primary" href="{{ tomcat_group.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.services.delete_tomcatgroup %}
+    <a role="button" class="btn btn-danger" href="{{ tomcat_group.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ tomcat_group.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ tomcat_group.note }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ tomcat_group.create_time | date:"Y-m-d H:i:s" }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if perms.services.add_tomcatcluster %}
+    <a role="button" class="btn btn-primary" href="{% url 'tomcat_cluster_create' tomcat_group.id %}">新建Tomcat集群</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名字</th>
+                <th>备注</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for cluster in tomcat_cluster_list %}
+            <tr>
+                <td><a href="{{ cluster.get_absolute_url }}">{{ cluster.name }}</a></td>
+                <td>{{ cluster.note }}</td>
+                <td>{{ cluster.user.get_full_name }}</td>
+                <td>{{ cluster.create_time | date:"Y-m-d H:i:s" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

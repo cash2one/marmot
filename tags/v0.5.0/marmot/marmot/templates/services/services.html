@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}服务列表{% endblock %}
+
+{% block content %}
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newService">新建服务</button>
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr><th>服务名</th><th>端口</th><th>类型</th><th>备注</th></tr>
+        </thead>
+        <tbody>
+            {% for service in services %}
+                <tr><td>{{service.name}}</td><td>{{service.ports}}</td><td>{{service.get_type_display}}</td><td>{{service.ext}}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+<div class="modal" id="newService" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+				<h4 class="modal-title">添加新的服务</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal" action="." method="POST" id="service_form">
+					<div class="form-group">
+						<label for="service_name" class="col-sm-2 control-label">服务名</label>
+						<div class="col-sm-9">
+							<input type="text" class="form-control" id="service_name" name="name" placeholder="服务名">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="service_ports" class="col-sm-2 control-label">端口</label>
+						<div class="col-sm-9">
+							<input type="text" class="form-control" id="service_ports" name="ports" placeholder="端口">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="service_type" class="col-sm-2 control-label">类型</label>
+						<div class="col-sm-9">
+							<select class="form-control" name="type">
+								{% for key, value in opts %}
+									<option value="{{key}}">{{value}}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="service_ext" class="col-sm-2 control-label">备注</label>
+						<div class="col-sm-9">
+                            <textarea class="form-control" rows="3" id="service_ext" name="ext" placeholder="备注"></textarea>
+						</div>
+					</div>
+				</form>
+				<div class="clearfix">&nbsp;</div>
+				<div class="text-center">
+					<button  type="button" class="btn btn-primary" id="service_submit">添加</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+$(function(){
+	$("#service_submit").click(function() {
+		$.ajax({
+			type: "POST",
+			url:"/services/services/",
+			data: $("#service_form").serialize(),
+			success: function(msg){
+				if (msg.succ) {
+					location.reload();
+				} else {
+					alert(msg.msg);
+				}
+			},
+			error: function(){
+				alert("报告管理员！");
+			}
+		});
+	});
+});
+</script>
+{% endblock %}

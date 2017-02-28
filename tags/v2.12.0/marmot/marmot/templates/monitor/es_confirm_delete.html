@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除ES监控器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active"><a href="{{ es_monitor.get_absolute_url }}">{{ es_monitor.name }}</a></li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">确认要删除"{{ es_monitor.name }}"吗?</div>
+        <button class="btn btn-primary" type="submit">确认</button>
+        <a class="btn btn-warning" href="{{ es_monitor.get_absolute_url }}">取消</a>
+    </form>
+{% endblock %}

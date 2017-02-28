@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}添加Jar包{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ ice_service.center.get_absolute_url }}">ICE注册中心：{{ ice_service.center.name }}</a></li>
+        <li class="active"><a href="{{ ice_service.get_absolute_url }}">ICE服务：{{ ice_service.name }}</a></li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+
+{% endblock %}

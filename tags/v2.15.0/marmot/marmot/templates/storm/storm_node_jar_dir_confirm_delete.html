@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除Jar包目录{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ storm_node_jar_dir.storm_node.get_absolute_url }}">Storm服务器：{{ storm_node_jar_dir.storm_node.name }}</a></li>
+        <li class="active">删除Jar包目录</li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">确认要删除Storm服务器Jar包目录"{{ storm_node_jar_dir.name }}"吗?</div>
+        <button class="btn btn-primary" type="submit">确认</button>
+        <a class="btn btn-warning" href="{{ storm_node_jar_dir.storm_node.get_absolute_url }}">取消</a>
+    </form>
+{% endblock %}

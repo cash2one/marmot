@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}SpringCloud应用{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ cluster.get_absolute_url }}">{{ cluster.name }}</a></li>
+        {% if "update" in request.path %}
+            <li class="active"><a href="{{ springcloud_app.get_absolute_url }}">{{ springcloud_app.name }}</a></li>
+        {% else %}
+            <li class="active">创建SpringCloud应用</li>
+        {% endif %}
+    </ol>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+
+{% endblock %}

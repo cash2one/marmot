@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block title %}ES监控器列表{% endblock %}
+{% block content %}
+    {% if perms.monitor.add_esmonitor %}
+    <a role="button" class="btn btn-primary" href="{% url 'es_create' %}">新建ES监控器</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>监控接口</th>
+                <th>状态</th>
+                <th>备注</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for es in es_monitor_list %}
+                <tr>
+                    <td><a href="{{ es.get_absolute_url }}">{{ es.name }}</a></td>
+                    <td>{{ es.addr }}</td>
+                    <td>{% bootstrap_span_custom es.active "开启/关闭" %}</td>
+                    <td>{{ es.note | truncatechars:20 }}</td>
+                    <td>{{ es.created_by.get_full_name }}</td>
+                    <td>{{ es.create_time | date:"Y-m-d H:i:s" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

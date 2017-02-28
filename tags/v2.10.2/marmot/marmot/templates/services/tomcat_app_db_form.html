@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}添加数据库{% endblock %}
+{% block content %}
+    {% if 'create' in request.path %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app.cluster.get_absolute_url }}">Tomcat集群：{{ tomcat_app.cluster.name }}</a></li>
+        <li><a href="{{ tomcat_app.get_absolute_url }}">Tomcat应用：{{ tomcat_app.name }}</a></li>
+        <li class="active">添加数据库</li>
+    </ol>
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+    {% elif 'update' in request.path %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app_db.app.cluster.get_absolute_url }}">Tomcat集群：{{ tomcat_app_db.app.cluster.name }}</a></li>
+        <li><a href="{{ tomcat_app_db.app.get_absolute_url }}">Tomcat应用：{{ tomcat_app_db.app.name }}</a></li>
+        <li class="active">更新数据库</li>
+    </ol>
+        {% if tomcat_app_db.is_ready %}
+            <form method="post">
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                {% buttons submit="提交" %}{% endbuttons %}
+            </form>
+        {% else %}
+            <div class="alert alert-info" role="alert">这个数据库有任务正在后台执行, 暂时不能更新!</div>
+        {% endif %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}机柜列表{% endblock %}
+{% block content %}
+    <button type="button" class="btn btn-primary">添加机柜</button>
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr>
+                <th>机柜编号</th>
+                <th>机柜容量</th>
+                <th>已用数量</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cab in cabs %}
+                <tr>
+                    <td><a href="/assets/device/cab_{{cab.id}}">{{cab.num}}</a></td>
+                    <td>{{cab.total_capacity}}</td>
+                    <td>{{cab.used_capacity}}</td>
+                    <td>{{cab.note}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}Storm应用{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ storm_app.cluster.get_absolute_url }}">storm集群：{{ storm_app.cluster.name }}</a></li>
+        <li>Strom应用：{{ storm_app.name }}</li>
+    </ol>
+
+    {% if perms.storm.change_stormapp %}
+    <a role="button" class="btn btn-primary" href="{{ storm_app.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.storm.delete_stormapp %}
+    <a role="button" class="btn btn-danger" href="{{ storm_app.get_delete_url }}">删除</a>
+    {% endif %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                    <tr>
+                        <th scope="row" style="width: 20%">名称</th>
+                        <td>{{ storm_app.name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">主函数</th>
+                        <td>{{ storm_app.main_function }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">运行参数</th>
+                        <td>{{ storm_app.args }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">备注</th>
+                        <td>{{ storm_app.note }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">开发者</th>
+                        <td>{{ storm_app.get_users_display }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">创建时间</th>
+                        <td>{{ storm_app.create_time | date:"Y-m-d H:i:s" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            {% get_obj_perms request.user for storm_app.cluster as "storm_cluster_perms" %}
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <thead>
+                    <tr>
+                        <th>Storm节点</th>
+                        <th>Jar包目录</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for node in nodes %}
+                        {% with node.node.is_alive as is_alive %}
+                        <tr>
+                            <td title="{{ node.node.host }}"><a href="{{ node.node.get_absolute_url }}" class="btn btn-link">{{ node.node.name }}</a></td>
+                            <td>
+                                <button type='button' value="{% url 'get_storm_node_jar_dir' node.id %}" class='btn btn-link config-dir'>{% if node.jar_dir %}{{ node.jar_dir.jar_dir }}{% else %}配置目录{% endif %}</button>
+                            </td>
+                            <td>
+                                {% bootstrap_span_state is_alive content_type=1 %}
+                            </td>
+                            <td>
+                            {% if "operate_storm_node" in storm_cluster_perms %}
+	                            {% if is_alive %}
+	                                <button type='button' class='btn btn-sm btn-danger switch-ts' href="{% url 'storm_node_switch' node.node.id %}" value="stop">停止</button>&nbsp;
+	                            {% else %}
+	                                <button type='button' class='btn btn-sm btn-success switch-ts' href="{% url 'storm_node_switch' node.node.id %}" value="start">启动</button>&nbsp;
+	                            {% endif %}
+                            {% endif %}
+                            {% if "push_storm_jar_pkg" in storm_cluster_perms %}
+                            <button type='button' class='btn btn-sm btn-info push-jar' value="{% url 'push_jar_to_storm' storm_app.id node.id %}" {% if not active_jar.is_ready %}disabled{% endif %}>推Jar包</button>&nbsp;
+                            {% endif %}
+                            {% if "run_storm_jar_pkg" in storm_cluster_perms %}
+                            <button type='button' class='btn btn-sm btn-warning run-jar' value="{% url 'run_jar_to_storm' storm_app.id node.id %}" {% if active_jar.is_ready and is_alive %}enabled{% else %}disabled{% endif %}>提交任务</button>
+                            {% endif %}
+                            </td>
+                        </tr>
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="#" class="list-group-item active">基本信息</a>
+                <a href="{% url 'storm_app_jar_list' storm_app.id %}" class="list-group-item">Jar包列表<span class="badge">{{ storm_app.stormappjar_set.count }}</span></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="config-tsn-modal" tabindex="-1" role="dialog" aria-labelledby="config-tsn-modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title"><strong>配置目录</strong></h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                        <label for="jar-dir" class="control-label">选择Jar包放置的目录</label>
+                        <select id="jar-dir" class="form-control"></select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-success" id="save-jar-dir">保存</button>
+                    <button type="button" class="btn btn-sm btn-warning" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+<script>
+    $(document).ready(function () {
+        var oJarDir = $('#jar-dir');
+        var btnSaveWarDir = $('#save-jar-dir');
+        var modal = $('#config-tsn-modal');
+
+        $('.config-dir').click(function () {
+            var url = $(this).val();
+            $.getJSON(url, {}, function (ret) {
+                if (ret.msg == 0) {
+                    oJarDir.empty();
+                    var data = ret.data;
+                    for (var i = 0; i < data.length; i++) {
+                        oJarDir.append('<option value="' + data[i].tswid + '">' + data[i].wdir + '</option>');
+                    }
+                    btnSaveWarDir.val(ret.nid);
+                    modal.modal('show');
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+
+        btnSaveWarDir.click(function () {
+            var nid = $(this).val();
+            var wid = oJarDir.val();
+            if (wid !== null) {
+                $.getJSON("{% url 'config_storm_app_node_jar_dir' %}", {'nid': nid, 'wid': wid}, function (ret) {
+                    if (ret.msg == 0) {
+                        location.reload();
+                    } else {
+                        bootbox.alert(ret.msg);
+                    }
+                });
+            }
+            modal.modal('hide');
+        });
+
+        $('.switch-ts').click(function () {
+            var self = $(this);
+            var state = self.val();
+            var url = self.attr('href');
+            var tip = '';
+            if (state === 'start') {
+                tip = '确认启动Storm节点吗？';
+            } else if (state == 'stop') {
+                tip = '确认停止Storm节点吗？'
+            }
+            bootbox.confirm(tip, function (result) {
+                if (result) {
+                    $.getJSON(url, {state: state}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.reload();
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+
+        $('.push-jar').click(function () {
+            var url = $(this).val();
+            bootbox.confirm('确认推送Jar包文件吗？', function (result) {
+                if (result) {
+                    $.getJSON(url, {}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.href = ret.redirect;
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+        $('.run-jar').click(function () {
+            var url = $(this).val();
+            bootbox.confirm('确认提交jar包文件到Storm吗？', function (result) {
+                if (result) {
+                    $.getJSON(url, {}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.href = ret.redirect;
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

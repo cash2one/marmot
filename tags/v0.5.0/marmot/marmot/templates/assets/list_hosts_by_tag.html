@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}服务器列表{% endblock %}
+{% block content %}
+    <div class="row">
+        <form action="/assets/list_host_by_tag/" method="GET">
+            <div class="col-md-3">
+                <select class="form-control" name="name" id="select_tag">
+                    {% for tag in tags %}
+                        <option value="{{tag.name}}">{{tag.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="btn btn-primary" type="submit">查询</button>
+        </form>
+    </div>
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr><th>主机名</th><th>IP</th><th>产品型号</th><th>CPU物理核数</th><th>内存(G)</th><th>磁盘(G)</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+            {%for host in page%}
+            <tr><td><a href="/assets/host_detail/?server_id={{host.id}}">{{host.hostname}}</a></td><td>{{host.listen_ip}}</td><td>{{host.product_name}}</td><td>{{host.cpu_cores}}</td><td>{{host.mem_size}}</td><td>{{host.disk_size}}</td><td><a class="btn btn-success" href="/services/select_ruleset/server_{{host.id}}/">主机设置</td></tr>
+            {%endfor%}
+        </tbody>
+    </table>
+	<nav>
+		{%if page%}
+			<ul class="pagination">
+				{%if page.has_previous%}
+					<li><a href="/assets/list_host_by_tag/?name={{checked_name}}&page={{page.previous_page_number }}">&laquo;</a></li>
+				{%else%}
+					<li><a href="#">&laquo;</a></li>
+				{%endif%}
+					<li><a href="/assets/list_host_by_tag/?name={{checked_name}}&page={{page.number}}">{{page.number}}</a></li>
+				{%if page.has_next%}
+					<li><a href="/assets/list_host_by_tag/?name={{checked_name}}&page={{page.next_page_number }}">&raquo;</a></li>
+				{%else%}
+					<li><a href="#">&raquo;</a></li>
+				{%endif%}
+			</ul>
+		{%endif%}
+	</nav>
+{% endblock %}
+{% block js%}
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#select_tag").val("{{ checked_name }}");
+});
+</script>
+{% endblock %}

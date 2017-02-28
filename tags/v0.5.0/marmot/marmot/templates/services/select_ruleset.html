@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}主机设置{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">{{server.hostname}} <small>{{server.listen_ip}}</small></h1>
+        </div>
+    </div>
+
+    <div class="panel panel-info">
+		<div class="panel-heading">选择规则类型</div>
+		<div class="panel-body">
+			<div class="row text-center"><h3>主机：{{server.hostname}}</h3></div>
+			<div class="row">
+				<div class="col-sm-6">
+					<a class="btn" href="/services/set_host_tag/server_{{server.id}}/" target="_blank"><h4>设置标签</h4></a>
+					<a class="btn" href="/services/set_host_service/server_{{server.id}}/" target="_blank"><h4>设置服务</h4></a>
+					<a class="btn" href="/services/set_rule/server_{{server.id}}/" target="_blank"><h4>基本规则</h4></a>
+					<a class="btn" href="/services/set_script/server_{{server.id}}/" target="_blank"><h4>脚本规则</h4></a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock %}

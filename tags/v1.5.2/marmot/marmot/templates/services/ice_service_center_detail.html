@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}ICE注册中心{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active">ICE注册中心：{{ ice_service_center.name }}</li>
+    </ol>
+    {% if perms.services.change_iceservicecenter %}
+    <a role="button" class="btn btn-primary" href="{{ ice_service_center.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.services.delete_iceservicecenter %}
+    <a role="button" class="btn btn-primary" href="{{ ice_service_center.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ ice_service_center.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">注册中心标识</th>
+                <td>{{ ice_service_center.prefix }}</td>
+            </tr>            
+            <tr>
+                <th scope="row">位置(主)</th>
+                <td>{{ ice_service_center.master_server.ip }} - {{ ice_service_center.master_port }}</td>
+            </tr>
+            <tr>
+                <th scope="row">位置(从)</th>
+                <td>{{ ice_service_center.slave_server.ip }} - {{ ice_service_center.slave_port }}</td>
+            </tr>
+            {% if user.profile.privilege >= 3 %}
+            <tr>
+                <th scope="row">admin用户</th>
+                <td>{{ ice_service_center.admin_user }}</td>
+            </tr>
+            <tr>
+                <th scope="row">admin密码</th>
+                <td>{{ ice_service_center.admin_password }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ ice_service_center.note }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ ice_service_center.create_time}}</td>
+            </tr>
+            <tr>
+                <th scope="row">更新时间</th>
+                <td>{{ ice_service_center.modify_time }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul id="myTabs" class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#ice-services" id="ice-services-tab" role="tab" data-toggle="tab" aria-controls="ice-services" aria-expanded="true">ICE服务</a></li>
+        <li role="presentation"><a href="#ice-service-center" id="ice-service-center-tab" role="tab" data-toggle="tab" aria-controls="ice-service-center" aria-expanded="false">ICE注册中心信息</a></li>
+    </ul>
+
+    <div id="myTabContent" class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="ice-services" aria-labelledby="ice-services-tab">
+            <table class="table table-hover table-striped" style="margin-top: 3px;">
+                <thead>
+                    <tr>
+                        <th>节点名称</th>
+                        <th>节点主机</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for node in ice_service_node_list %}
+                        <tr>
+                            <th>{{ node.name }}</th>
+                            <td>{{ node }}</td>
+                            <td>
+                                {% if node.is_online %}
+                                    <span class="label label-success">在线</span>
+                                {% else %}
+                                    <span class="label label-danger">离线</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if perms.services.add_iceservice %}
+            <a role="button" class="btn btn-primary" href="{% url 'ice_service_create' ice_service_center.id %}">添加ICE服务</a>
+            {% endif %}
+            <table class="table table-hover table-striped" style="margin-top: 3px;">
+                <thead>
+                    <tr>
+                        <th>ICE服务名</th>
+                        <th>版本</th>
+                        <th>创建人</th>
+                        <th>备注</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ice_service in ice_service_list %}
+                        <tr>
+                            <td><a href="{{ ice_service.get_absolute_url }}">{{ ice_service.name }}</a></td>
+                            <td>{{ ice_service.version }}</td>
+                            <td>{{ ice_service.user.first_name }}</td>
+                            <td>{{ ice_service.note }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="ice-service-center" aria-labelledby="ice-service-center-tab">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                    {% for node in all_node_info %}
+                    <tr>
+                        <th scope="row">{{ node.name }}</th>
+                        <td>
+                            {% for k, v in node.info.items %}
+                                <p>{{ k }}: {{ v }}</p>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for k, v in node.load.items %}
+                                <p>{{ k }}: {{ v }}</p>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                    {% for app_name, app_info in all_app_info.items %}
+                    <tr>
+                        <th scope="row">{{ app_name }}</th>
+                        <td>
+                            {% for node, info in app_info.items %}
+                                <p>{{ node }} - pid: {{ info.pid }}; state: {{ info.state }}</p>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+<script>
+$(document).ready(function () {
+    $('a[data-toggle="tab"]').click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    });
+});
+</script>
+{% endblock %}

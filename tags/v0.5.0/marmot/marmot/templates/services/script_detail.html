@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}脚本 - {{ script.name }}{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ script.get_absolute_url }}">{{ script.name }}</a></li>
+    </ol>
+
+    <a role="button" class="btn btn-primary" href="{{ script.get_update_url }}">编辑</a>
+    <a role="button" class="btn btn-primary" href="{{ script.get_delete_url }}">删除</a>
+    {% if has_perm_run_script %}
+        <button type="button" class="btn btn-primary" id="run-script">启动脚本</button>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ script.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">脚本</th>
+                <td>{{ script.script }}</td>
+            </tr>
+            <tr>
+                <th scope="row">运行位置</th>
+                <td>{{ script.server.listen_ip }}</td>
+            </tr>
+            <tr>
+                <th scope="row">所有者</th>
+                <td>{{ script.owner.get_short_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">上传时间</th>
+                <td>{{ script.create_time }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ script.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}
+{% block js %}
+    <script>
+    $(document).ready(function () {
+        $("#run-script").click(function () {
+            var self = $(this);
+            self.attr('disabled', true);
+            var url = "{% url "run_script" script.id %}";
+            $.getJSON(url, {}, function (ret) {
+                if (ret.msg == 0) {
+                    location.href = '{% url "script_implement_log_view" script.id %}';
+                } else {
+                    self.removeAttr('disabled');
+                    alert(ret.msg);
+                }
+            });
+        });
+    });
+    </script>
+{% endblock %}

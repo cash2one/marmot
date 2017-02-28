@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}设置主机服务{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">{{server.hostname}}</h1>
+        </div>
+    </div>
+
+    <div class="panel panel-info">
+		<div class="panel-heading">设置主机服务</div>
+		<div class="panel-body">
+			<form class="form-horizontal" id="rule_form">
+				<table class="table table-hover table-striped" id="list_services">
+					<thead>
+						<tr><th>服务名</th><th>端口</th><th>备注</th><th>选择</th></tr>
+					</thead>
+					<tbody>
+						{% for host_service in host_services.all %}
+							<tr><td>{{host_service.service.name}}</td><td>{{host_service.service.ports}}</td><td>{{host_service.service.ext}}</td><td><input type="checkbox" value="{{host_service.service.id}}" name="services" checked="checked" disabled="true"></td></tr>
+						{% endfor %}
+						{% for service in unchecked_services %}
+							<tr><td>{{service.name}}</td><td>{{service.ports}}</td><td>{{service.ext}}</td><td><input type="checkbox" value="{{service.id}}" name="services"></td></tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</form>
+			
+		</div>
+		<div class="panel-footer"><button type="button" class="btn btn-primary center-block" id="host_service_submit">更新主机服务</button></div>
+	</div>
+</div>
+{% endblock %}
+
+
+{% block js%}
+<script type="text/javascript">
+$(function(){
+	$("#host_service_submit").click(function() {
+		checked = new Array();
+		$("input[name='services']:checked").each(function(i, selected) {
+			checked[i] = $(selected).val();
+		});
+
+		unchecked = new Array();
+		$("input[name='services']").not("input:checked").each(function(i, selected) {
+			unchecked[i] = $(selected).val();
+		});
+
+		$.ajax({
+			type: "POST",
+			url:"{{request.path}}",
+			data: {"checked": checked, "unchecked": unchecked},
+			success: function(msg){
+				if (msg.succ) {
+					alert('成功！');
+					location.reload();
+				}
+				else {
+					alert(msg.reason);
+				}
+			},
+			error: function(){
+				alert("报告管理员！");
+			}
+		});
+	});
+});
+</script>
+{% endblock %}

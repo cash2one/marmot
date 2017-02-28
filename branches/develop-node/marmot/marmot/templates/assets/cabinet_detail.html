@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}机柜 - {{ cabinet.num }}{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ cabinet.idc.get_absolute_url }}">{{ cabinet.idc.name }}</a></li>
+        <li class="active">{{ cabinet.num }}</li>
+    </ol>
+    {% if perms.assets.change_cabinet %}
+    <a role="button" class="btn btn-primary" href="{{ cabinet.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.assets.delete_cabinet %}
+    <a role="button" class="btn btn-danger" href="{{ cabinet.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">机柜编号</th>
+                <td>{{ cabinet.num }}</td>
+            </tr>
+            <tr>
+                <th scope="row">容量</th>
+                <td>{{ cabinet.total_capacity}}</td>
+            </tr>
+            <tr>
+                <th scope="row">已用容量</th>
+                <td>{{ cabinet.used_capacity }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ cabinet.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if perms.assets.add_server and not cabinet.is_full %}
+    <a role="button" class="btn btn-primary" href="{% url "server_check" cabinet.id %}">添加主机</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>主机名</th>
+                <th>IP</th>
+                <th>状态</th>
+                <th>型号</th>
+                <th>CPU核数</th>
+                <th>内存(G)</th>
+                <th>磁盘(G)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for server in cabinet.server_set.all %}
+            <tr>
+                <td><a href="{{ server.get_absolute_url }}">{{ server.hostname }}</a></td>
+                <td>{{ server.ip }}</td>
+                <td>
+                    {% if server.is_alive %}
+                        <span class="label label-success">在线</span>
+                    {% else %}
+                        <span class="label label-danger">离线</span>
+                    {% endif %}
+                </td>
+                <td>{{ server.product_model }}</td>
+                <td>{{ server.cpu_logic_nums }}</td>
+                <td>{{ server.mem_size }}</td>
+                <td>{{ server.disk_size }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if perms.assets.add_networkdevice and not cabinet.is_full %}
+    <a role="button" class="btn btn-primary" href="{% url 'network_device_create' cabinet.id %}">添加网络设备</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>编号</th>
+                <th>位置</th>
+                <th>厂商</th>
+                <th>型号</th>
+                <th>类型</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for device in cabinet.networkdevice_set.all %}
+                <tr>
+                    <td><a href="{{ device.get_absolute_url }}">{{device.num}}</a></td>
+                    <td>{{device.position}}</td>
+                    <td>{{device.manufacturer}}</td>
+                    <td>{{device.device_model}}</td>
+                    <td>{{device.get_device_type_display}}</td>
+                    <td>{{device.note}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

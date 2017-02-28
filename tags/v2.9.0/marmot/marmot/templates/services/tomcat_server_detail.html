@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}Tomcat服务器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_server.cluster.group.get_absolute_url }}">Tomcat组：{{ tomcat_server.cluster.group.name }}</a></li>
+        <li><a href="{{ tomcat_server.cluster.get_absolute_url }}">Tomcat服务器集群：{{ tomcat_server.cluster.name }}</a></li>
+        <li class="active">Tomcat服务器：{{ tomcat_server.name }}</li>
+    </ol>
+
+    {% include "_messages.html" %}
+
+    {% if perms.services.change_tomcatserver %}
+        <a role="button" class="btn btn-primary" href="{{ tomcat_server.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.services.delete_tomcatserver %}
+        <a role="button" class="btn btn-danger" href="{{ tomcat_server.get_delete_url }}">删除</a>
+    {% endif %}
+    {% get_obj_perms request.user for tomcat_server.cluster as "tomcat_cluster_perms" %}
+    {% if "operate_tomcat" in tomcat_cluster_perms %}
+        {% if is_alive %}
+            <button type='button' class='btn btn-warning' id="server-stop">停止</button>
+        {% else %}
+            <button type='button' class='btn btn-success' id="server-start">启动</button>
+        {% endif %}
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ tomcat_server.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">位置</th>
+                <td>{{ tomcat_server.host }}</td>
+            </tr>
+            <tr>
+                <th scope="row">端口</th>
+                <td>{{ tomcat_server.port }} </td>
+            </tr>
+            <tr>
+                <th scope="row">状态</th>
+                <td>
+                    {% bootstrap_span_state is_alive content_type=1 %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">命令</th>
+                <td>{{ tomcat_server.cmd }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ tomcat_server.note }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ tomcat_server.user.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ tomcat_server.create_time | date:"Y-m-d H:i:s" }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if perms.services.add_tomcatserverwardir %}
+        <a role="button" class="btn btn-primary" href="{% url 'tomcat_server_war_dir_create' tomcat_server.id %}">添加War包目录</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>War包目录</th>
+                <th>备注</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for dir in tomcat_server.tomcatserverwardir_set.all %}
+            <tr>
+                <td>{{ dir.war_dir }}</td>
+                <td>{{ dir.note }}</td>
+                <td>
+                    {% if perms.services.change_tomcatserverwardir %}
+                    <a role="button" class="btn btn-sm btn-info" href="{{ dir.get_update_url }}">编辑</a>
+                    {% endif %}
+                    {% if perms.services.delete_tomcatserverwardir %}
+                    <a role="button" class="btn btn-sm btn-danger" href="{{ dir.get_delete_url }}">删除</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+{% block js %}
+{% get_obj_perms request.user for tomcat_server.cluster as "tomcat_cluster_perms" %}
+{% if "operate_tomcat" in tomcat_cluster_perms %}
+<script>
+    $(document).ready(function () {
+        $('#server-start').click(function () {
+            bootbox.confirm('确认启动Tomcat吗？', function (result) {
+                if (result) {
+                    var url = "{% url 'tomcat_server_switch' tomcat_server.id %}";
+                    $.getJSON(url, {state: 'start'}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.reload();
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#server-stop').click(function () {
+            bootbox.confirm('确认停止Tomcat吗？', function (result) {
+                if (result) {
+                    var url = "{% url 'tomcat_server_switch' tomcat_server.id %}";
+                    $.getJSON(url, {state: 'stop'}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.reload();
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

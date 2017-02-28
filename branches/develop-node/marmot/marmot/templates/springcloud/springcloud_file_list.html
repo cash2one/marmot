@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}SpringCloud文件{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ springcloud_app.cluster.get_absolute_url }}">{{ springcloud_app.cluster.name }}</a></li>
+        <li class="active">{{ springcloud_app.name }}</li>
+    </ol>
+
+    {% if perms.springcloud.add_springcloudfile %}
+    <button type="button" class="btn btn-primary" id="js-upload-file">
+      <span class="glyphicon glyphicon-cloud-upload"></span>上传文件
+    </button>
+    {% endif %}
+    <input id="fileupload" type="file" name="file" multiple
+           style="display: none;"
+           data-url="{% url 'springcloud_file_upload' app=springcloud_app.pk type=type %}"
+           data-form-data='{"csrfmiddlewaretoken": "{{ csrf_token }}", "app": "{{ springcloud_app.pk }}", "type": "{{ type }}", "created_by": "{{ request.user.pk }}"}'>
+
+    {% get_obj_perms request.user for springcloud_app.cluster as "springcloud_cluster_perms" %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-hover table-striped" style="margin-top: 3px;" id="spring-cloud-files">
+                <thead>
+                    <tr>
+                        <th>文件</th>
+                        <th>创建人</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in page_obj %}
+                        <tr>
+                            <td title="{{ f.file_size }}"><a href="{{ f.file.url }}">{{ f }}</a></td>
+                            <td>{{ f.created_by.get_full_name }}</td>
+                            <td>{{ f.create_time }}</td>
+                            <td>
+                                {% if "delete_springcloudapp_files" in springcloud_cluster_perms %}
+                                <button type='button' class='btn btn-sm btn-danger' value="{{ f.pk }}">删除</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div align="center">
+                {% bootstrap_pagination page_obj url=request.path size="small" %}
+            </div>
+        </div>
+
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="{{ springcloud_app.get_absolute_url }}" class="list-group-item">基本信息</a>
+                <a href="{% url 'springcloud_file_list' app=springcloud_app.id type=0 %}" class="list-group-item {% ifequal type '0' %}active{% endifequal %}">lib<span class="badge">{{ lib_files_count }}</span></a>
+                <a href="{% url 'springcloud_file_list' app=springcloud_app.id type=1 %}" class="list-group-item {% ifequal type '1' %}active{% endifequal %}">lib/libs<span class="badge">{{ libs_files_count }}</span></a>
+                <a href="{% url 'springcloud_file_list' app=springcloud_app.id type=2 %}" class="list-group-item {% ifequal type '2' %}active{% endifequal %}">config<span class="badge">{{ config_files_count }}</span></a>
+                <a href="{% url 'springcloud_backup_list_view' app=springcloud_app.id %}" class="list-group-item">备份文件<span class="badge">{{ backup_count }}</span></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-progress" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">正在上传...</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0;">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+<script src="{% static 'jquery-file-upload/jquery.ui.widget.js' %}"></script>
+<script src="{% static 'jquery-file-upload/jquery.iframe-transport.js' %}"></script>
+<script src="{% static 'jquery-file-upload/jquery.fileupload.js' %}"></script>
+<script>
+    $(document).ready(function () {
+
+        $("#js-upload-file").click(function () {
+            $("#fileupload").click();
+        });
+
+        $("#fileupload").fileupload({
+            dataType: 'json',
+            sequentialUploads: true,
+            // acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
+            maxFileSize: 999000,
+
+            start: function (e) {
+                $("#modal-progress").modal("show");
+            },
+
+            stop: function (e) {
+                $("#modal-progress").modal("hide");
+            },
+
+            progressall: function (e, data) {
+                var progress = parseInt(data.loaded / data.total * 100, 10);
+                var strProgress = progress + "%";
+                var $progressBar = $(".progress-bar");
+                $progressBar.css({"width": strProgress});
+                $progressBar.text(strProgress);
+            },
+
+            done: function (e, data) {
+                console.log(data.result);
+                if (data.result.is_valid) {
+                    $("#spring-cloud-files").find('tbody').prepend(
+                        "<tr>" +
+                            "<td><a href='" + data.result.url + "'>" + data.result.name + "</a></td>" +
+                            "<td>" + data.result.created_by + "</td>" +
+                            "<td>" + data.result.create_time + "</td>" +
+                        "</tr>"
+                    )
+                }
+            }
+        });
+
+        $("#spring-cloud-files").click(function (e) {
+            var url = "{% url 'springcloud_file_delete' %}";
+            var $target = $(e.target);
+            if ($target.is('button')) {
+                bootbox.confirm('确认删除这个文件吗?', function (result) {
+                    if (result) {
+                        var pk = $target.val();
+                        loading(true);
+                        $.getJSON(url, {pk: pk}, function (ret) {
+                            loading(false);
+                            if (ret.msg == 0) {
+                                location.reload();
+                            } else {
+                                bootbox.alert(ret.msg, function () {
+                                    location.reload();
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        $("#modal-progress").on('hide.bs.modal', function () {
+            location.reload();
+        });
+    });
+</script>
+{% endblock %}

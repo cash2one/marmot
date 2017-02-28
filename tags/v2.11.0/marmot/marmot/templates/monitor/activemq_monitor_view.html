@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}ActiveMQ信息{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'activemq_monitor_list_view' %}">ActiveMQ监控器列表</a></li>
+        <li><a href="{{ activemq_monitor.get_absolute_url }}">{{ activemq_monitor.name }}</a></li>
+        <li class="active">ActiveMQ监控器：{{ activemq_monitor.name }}</li>
+    </ol>
+
+    <a role="button" class="btn btn-primary" href="{% url 'activemq_history_view' %}">历史数据</a>
+
+    {% include "_messages.html" %}
+
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>Number Of Pending Messages</th>
+                <th>Number Of Consumers</th>
+                <th>Messages Enqueued</th>
+                <th>Messages Dequeued</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q in queues_info %}
+                <tr>
+                    <td>{{ q.QueueName }}</td>
+                    <td>{{ q.QueueSize }}</td>
+                    <td>{{ q.ConsumerCount }}</td>
+                    <td>{{ q.EnqueueCount }}</td>
+                    <td>{{ q.DequeueCount }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+{% block js %}
+<script>
+$(document).ready(function () {
+    setInterval(function () {
+        location.reload();
+    }, 1000 * 5);
+});
+</script>
+{% endblock %}

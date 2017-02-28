@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}设置脚本规则{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">设置脚本规则:<small>{{server.hostname}}</small></h1>
+        </div>
+    </div>
+
+    <div class="panel panel-info">
+		<div class="panel-heading">设置脚本规则{% if rule.is_updating %} -  <span class="label label-warning">等待上次更新({{rule.update_time}})结束,</span> {% endif %}{% if rule.err %} - <span class="label label-warning">{{ rule.err }}, 更新脚本文件失败！</span>{% endif %}</div>
+		<div class="panel-body">
+			<form class="form-horizontal" id="script_form">
+				<table class="table table-hover table-striped">
+					<thead>
+						<tr><th>脚本名</th><th>警报间隔（分钟）</th><th>备注</th><th>更新日期</th><th>选择</th></tr>
+					</thead>
+					<tbody>
+						{% for script in rule.scripts.all %}
+							<tr><td>{{script.name}}</td><td>{{script.alarm_interval}}</td><td>{{script.ext}}</td><td>{{script.update_time}}</td><td><input type="checkbox" value="{{script.id}}" name="scripts" checked="checked"></td></tr>
+						{% endfor %}
+						{% for script in unchecked_scripts %}
+							<tr><td>{{script.name}}</td><td>{{script.alarm_interval}}</td><td>{{script.ext}}</td><td>{{script.update_time}}</td><td><input type="checkbox" value="{{script.id}}" name="scripts"></td></tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</form>
+		</div>
+		<div class="panel-footer"><button type="button" class="btn btn-primary center-block" id="script_submit" {% if rule.is_updating %} disabled="disabled" {% endif %}>更新服务器配置</button></div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block js%}
+<script type="text/javascript">
+$(function(){
+	$("#script_submit").click(function() {
+		$.ajax({
+			type: "POST",
+			url:"{{request.path}}",
+			data: $("#script_form").serialize(),
+			success: function(msg){
+				if (msg.succ) {
+					alert('成功！');
+					location.reload();
+				}
+				else {
+					alert(msg.reason);
+				}
+			},
+			error: function(){
+				alert("报告管理员！");
+			}
+		});
+	});
+});
+</script>
+{% endblock %}

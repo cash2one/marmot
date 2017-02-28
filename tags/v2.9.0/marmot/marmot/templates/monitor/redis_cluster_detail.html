@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Redis集群监控器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active">Redis集群监控器：{{ redis_cluster_monitor.name }}</li>
+    </ol>
+
+    {% if perms.monitor.change_redisclustermonitor %}
+    <a role="button" class="btn btn-primary" href="{{ redis_cluster_monitor.get_update_url }}">编辑</a>
+    {% endif %}
+    <a role="button" class="btn btn-info" href="{{ redis_cluster_monitor.get_monitor_url }}">监视</a>
+    {% if perms.monitor.delete_redisclustermonitor %}
+    <a role="button" class="btn btn-danger" href="{{ redis_cluster_monitor.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ redis_cluster_monitor.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">监控状态</th>
+                <td>{% bootstrap_span_custom redis_cluster_monitor.active "开启/关闭" %}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ redis_cluster_monitor.created_by.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ redis_cluster_monitor.create_time }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ redis_cluster_monitor.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if perms.monitor.add_redisnode %}
+    <a role="button" class="btn btn-primary" href="{% url 'redis_node_create' redis_cluster_monitor.id %}">添加Redis节点</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>主机</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rn in redis_cluster_monitor.redisnode_set.all %}
+                <tr>
+                    <td><a href="{{ rn.get_absolute_url }}">{{ rn }}</a></td>
+                    <td>{{ rn.created_by.get_full_name }}</td>
+                    <td>{{ rn.create_time | date:"Y-m-d H:i:s" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

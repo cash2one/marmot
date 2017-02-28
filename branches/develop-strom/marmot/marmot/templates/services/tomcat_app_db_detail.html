@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Tomcat应用数据库{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app_db.app.get_absolute_url }}">Tomcat应用:{{ tomcat_app_db.app.name }}</a></li>
+        <li class="active">Tomcat应用数据库：{{ tomcat_app_db.name }}</li>
+    </ol>
+
+    {% if perms.services.change_tomcatappdb %}
+    <a role="button" class="btn btn-primary" href="{{ tomcat_app_db.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.services.delete_tomcatappdb %}
+    <a role="button" class="btn btn-danger" href="{{ tomcat_app_db.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">数据库名称</th>
+                <td>{{ tomcat_app_db.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">地址</th>
+                <td>{{ tomcat_app_db.ip }}</td>
+            </tr>
+            <tr>
+                <th scope="row">端口</th>
+                <td>{{ tomcat_app_db.port }}</td>
+            </tr>
+            <tr>
+                <th scope="row">用户名</th>
+                <td>{{ tomcat_app_db.user }}</td>
+            </tr>
+            <tr>
+                <th scope="row">密码</th>
+                <td>{{ tomcat_app_db.pwd }}</td>
+            </tr>
+            <tr>
+                <th scope="row">状态</th>
+                <td>{{ tomcat_app_db.get_state_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ tomcat_app_db.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

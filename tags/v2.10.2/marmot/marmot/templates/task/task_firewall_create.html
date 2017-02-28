@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}添加端口开通任务{% endblock %}
+{% block content %}
+<ol class="breadcrumb">
+    <li class="active">添加端口开通任务</li>
+</ol>
+
+<form>
+    <div class="form-group">
+        <label for="task-name" class="control-label">任务名称：</label>
+        <input id="task-name" type="text" class="form-control" placeholder="任务名称">
+    </div>
+    <button type="button" class="btn btn-primary" id="add-goal">添加</button>
+    <table id="goal" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>源地址</th>
+                <th>目标地址</th>
+                <th>端口</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div class="form-group">
+        <label for="task-note" class="control-label">说明：</label>
+        <textarea id="task-note" class="form-control" placeholder="说明" rows="3"></textarea>
+    </div>
+    <button type="button" class="btn btn-primary" id="submit">提交</button>
+</form>
+
+<div class="modal fade" id="add-goal-modal" tabindex="-1" role="dialog" aria-labelledby="add-goal-modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">请填写地址和端口</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="src-addr" class="control-label">源地址：</label>
+                        <input id="src-addr" type="text" class="form-control" placeholder="" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dest-addr" class="control-label">目标地址：</label>
+                        <input id="dest-addr" type="text" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ports" class="control-label">端口：</label>
+                        <input id="ports" name="contact-tel" type="text" class="form-control" placeholder='多个端口用","分割' required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="add" class="btn btn-primary">添加</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+<script>
+$(document).ready(function () {
+    var table = $('#goal');
+    var tbody = table.children("tbody");
+    var modal = $('#add-goal-modal');
+    var srcAddr = $('#src-addr');
+    var destAddr = $('#dest-addr');
+    var ports = $('#ports');
+
+    function parseRow(tr){
+        var tds = tr.children('td');
+        return {
+            srcAddr: tds.eq(0).text(),
+            destAddr: tds.eq(1).text(),
+            ports: tds.eq(2).text()
+        }
+    }
+
+    $('#add-goal').click(function () {
+        srcAddr.val('');
+        destAddr.val('');
+        ports.val('');
+        modal.find("div.has-error").removeClass("has-error");
+        modal.modal('show');
+    });
+
+    $('#add').click(function () {
+        var srcAddrVal = $.trim(srcAddr.val());
+        var destAddrVal = $.trim(destAddr.val());
+        var portsVal = $.trim(ports.val());
+        var err = 0;
+
+        if (!srcAddrVal) {
+            srcAddr.focus();
+            srcAddr.parent().addClass("has-error");
+            err += 1;
+        }
+        if (!destAddrVal) {
+            destAddr.focus();
+            destAddr.parent().addClass("has-error");
+            err += 1;
+        }
+        if (!portsVal) {
+            ports.focus();
+            ports.parent().addClass("has-error");
+            err += 1;
+        }
+        if (err > 0) {
+            return
+        }
+
+        tbody.append(
+            "<tr>"+
+                "<td>"+srcAddrVal+"</td>"+
+                "<td>"+destAddrVal+"</td>"+
+                "<td>"+portsVal+"</td>"+
+                "<td>" +
+                    "<button type='button' class='btn btn-sm btn-danger' onclick='$(this).parent().parent().remove();'>删除</button>" +
+                "</td>"+
+            "</tr>"
+        );
+        modal.modal('hide');
+    });
+
+    $('#submit').click(function () {
+        var taskName = $('#task-name');
+        var taskNote = $('#task-note');
+        var goals = [];
+
+        if (!$.trim(taskName.val())) {
+            taskName.focus();
+            bootbox.alert('请填写任务名称');
+            return;
+        }
+
+        var trs = tbody.children('tr');
+        if (trs.length == 0) {
+            bootbox.alert('请填写具体的地址和端口');
+            return;
+        }
+
+        trs.each(function () {
+            goals.push(parseRow($(this)));
+        });
+
+        var data = {
+            taskName: $.trim(taskName.val()),
+            taskNote: $.trim(taskNote.val()),
+            goals: goals
+        };
+
+        $.post("{% url 'task_firewall_create' %}", JSON.stringify(data), function (ret) {
+            if (ret.msg == 0) {
+                location.href = "{% url 'task_list' %}";
+            } else {
+                bootbox.alert(ret.msg);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

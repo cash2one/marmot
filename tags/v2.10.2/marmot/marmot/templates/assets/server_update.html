@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}添加主机{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ server.cabinet.idc.get_absolute_url }}">{{ server.cabinet.idc.name }}</a></li>
+        <li><a href="{{ server.cabinet.get_absolute_url }}">机柜：{{ server.cabinet.num }}</a></li>
+        <li class="active">编辑主机</li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+
+{% endblock %}

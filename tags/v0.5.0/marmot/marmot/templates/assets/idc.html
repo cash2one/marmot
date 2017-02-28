@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}IDC{% endblock %}
+{% block content %}
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newIDC">新建IDC</button>
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr>
+                <th>机房名</th>
+                <th>机房类型</th>
+                <th>机房地址</th>
+                <th>联系人</th>
+                <th>联系电话</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for idc in idcs %}
+                <tr>
+                    <td><a href="/assets/cab/idc_{{idc.id}}/">{{idc.name}}</a></td>
+                    <td>{{idc.type}}</td><td>{{idc.addr}}</td>
+                    <td>{{idc.contact}}</td>
+                    <td>{{idc.phone}}</td>
+                    <td>{{idc.note}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+<div class="modal" id="newIDC" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+				<h4 class="modal-title">添加新的IDC</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal" method="POST" id="idc_form">
+					<div class="form-group">
+						<label for="idc_name" class="col-sm-3 control-label">机房名</label>
+						<div class="col-sm-9">
+							<input type="text" class="form-control" id="idc_name" name="name" placeholder="机房名">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="idc_type" class="col-sm-3 control-label">机房类型</label>
+						<div class="col-sm-9">
+							<input type="text" class="form-control" id="idc_type" name="type" placeholder="机房类型">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="idc_addr" class="col-sm-3 control-label">机房地址</label>
+						<div class="col-sm-9">
+							<input type="text" class="form-control" id="idc_addr" name="addr" placeholder="机房地址">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="idc_contact" class="col-sm-3 control-label">联系人</label>
+						<div class="col-sm-9">
+							<input type="text" class="form-control" id="idc_contact" name="contact" placeholder="联系人">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="idc_phone" class="col-sm-3 control-label">联系电话</label>
+						<div class="col-sm-9">
+							<input type="text" class="form-control" id="idc_phone" name="phone" placeholder="联系电话">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="idc_ext" class="col-sm-3 control-label">备注</label>
+						<div class="col-sm-9">
+                            <textarea class="form-control" rows="3" id="idc_ext" name="note" placeholder="备注"></textarea>
+						</div>
+					</div>
+				</form>
+				<div class="text-center">
+					<button  type="button" class="btn btn-primary" id="idc_submit">添加</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+{% block js %}
+<script>
+$(function(){
+	$("#idc_submit").click(function() {
+		$.ajax({
+			type: "POST",
+			url: "/assets/idc/",
+			data: $("#idc_form").serialize(),
+			success: function(msg){
+				if (msg.succ) {
+					location.reload();
+				} else {
+					alert(msg.msg);
+				}
+			},
+			error: function(){ alert("报告管理员！");}
+		});
+	});
+});
+</script>
+{% endblock %}

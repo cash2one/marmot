@@ -1,0 +1,4 @@
+gevent==1.1.2
+greenlet==0.4.10
+psutil==4.3.0
+netifaces==0.10.4

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}任务日志{% endblock %}
+{% block content %}
+    <style type="text/css">
+    #deploy-log {
+        margin-top: 3px;
+        background-color: #0d1318;
+        font-size: large;
+        color: white;
+    }
+    </style>
+    <textarea class="form-control" id="deploy-log" cols="40" rows="40" readonly></textarea>
+{% endblock %}
+{% block js %}
+    <script>
+    $(document).ready(function () {
+        var url = '{% url "task_implement_log" identifier %}';
+        var oLog = $('#deploy-log');
+        function getImplementLog() {
+            $.getJSON(url, {}, function (ret) {
+                var i = 0;
+                for (i = 0; i < ret.msg.length; i++) {
+                    oLog.val(oLog.val() + ret.msg[i]+'\n');
+                }
+                setTimeout(getImplementLog, 1000);
+            });
+        }
+        setTimeout(getImplementLog, 1000);
+    });
+    </script>
+{% endblock %}

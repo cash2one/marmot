@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Storm服务器Jar包目录{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        {% if "/storm-node-jar-dir/create" in request.path %}
+            <li><a href="{{ storm_node.get_absolute_url }}">Storm服务器：{{ storm_node.name }}</a></li>
+            <li class="active">添加Storm服务器Jar包目录</li>
+        {% else %}
+            <li><a href="{{ storm_node_jar_dir.storm_node.get_absolute_url }}">Storm服务器：{{ storm_node_jar_dir.storm_node.name }}</a></li>
+            <li class="active">更新Storm服务器Jar包目录</li>
+        {% endif %}
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}Tomcat应用War包{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app.cluster.get_absolute_url }}">Tomcat集群：{{ tomcat_app.cluster.name }}</a></li>
+        <li>Tomcat应用：{{ tomcat_app.name }}</li>
+    </ol>
+    {% if perms.services.add_tomcatappstatic %}
+    <a role="button" class="btn btn-primary" href="{% url 'tomcat_app_static_create' tomcat_app.id %}">添加</a>
+    {% endif %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                <tr>
+                    <th>创建时间</th>
+                    <th>文件包</th>
+                    <th>激活</th>
+                    <th>所属</th>
+                    <th>备注</th>
+                    <th>操作</th>
+                </tr>
+                {% for static_pkg in page_obj %}
+                    <tr>
+                        <td>{{ static_pkg.create_time|date:"Y-m-d H:i:s" }}</td>
+                        <td title="{{ static_pkg }}">{% if static_pkg.package %}<a href="{{ static_pkg.get_download_url }}">{{ static_pkg | truncatechars:18 }}</a>{% endif %}</td>
+                        <td>
+                            {% if static_pkg.active %}
+                                <span class="label label-success">是</span>
+                            {% else %}
+                                <span class="label label-danger">否</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ static_pkg.user.get_full_name }}</td>
+                        <td title="{{ static_pkg.note }}">{{ static_pkg.note | truncatechars:18 }}</td>
+                        <td>
+                            <button type='button' class='btn btn-sm btn-success' onclick='activeConfirm("{{ static_pkg.get_active_url }}")' {% if static_pkg.active %}disabled{% endif %}>激活</button>
+                            {% if perms.services.change_tomcatappstatic %}
+                            <a role="button" class="btn btn-sm btn-info" href="{{ static_pkg.get_update_url }}">编辑</a>
+                            {% endif %}
+                            {% if perms.services.delete_tomcatappstatic %}
+                            <a role="button" class="btn btn-sm btn-danger" href="{{ static_pkg.get_delete_url }}">删除</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div align="center">
+                {% bootstrap_pagination page_obj url=request.path size="small" %}
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="{{ tomcat_app.get_absolute_url }}" class="list-group-item">基本信息</a>
+                <a href="{% url 'tomcat_app_war_list' tomcat_app.id %}" class="list-group-item">War包列表<span class="badge">{{ tomcat_app.tomcatappwar_set.count }}</span></a>
+                <a href="#" class="list-group-item active">静态文件列表<span class="badge">{{ tomcat_app.tomcatappstatic_set.count }}</span></a>
+                <a href="{% url 'tomcat_app_sql_list' tomcat_app.id %}" class="list-group-item">Sql文件列表<span class="badge">{{ tomcat_app.tomcatappsql_set.count }}</span></a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

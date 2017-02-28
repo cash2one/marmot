@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Redis节点{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        {% if "create" in request.path %}
+            <li class="active">添加Redis节点</li>
+        {% elif "update" in request.path %}
+            <li><a href="{{ redis_node.get_absolute_url }}">Redis节点：{{ redis_node }}</a></li>
+            <li class="active">更新</li>
+        {% endif %}
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+{% endblock %}

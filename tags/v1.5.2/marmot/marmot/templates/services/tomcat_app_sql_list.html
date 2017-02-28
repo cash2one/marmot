@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% load guardian_tags %}
+{% block title %}Tomcat应用Sql文件{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app.tomcat_server.get_absolute_url }}">Tomcat服务器：{{ tomcat_app.tomcat_server.name }}</a></li>
+        <li>Tomcat应用：{{ tomcat_app.name }}</li>
+    </ol>
+    {% if perms.services.add_tomcatappsql %}
+    <a role="button" class="btn btn-primary" href="{% url 'tomcat_app_sql_create' tomcat_app.id %}">添加</a>
+    {% endif %}
+    {% get_obj_perms request.user for tomcat_app.tomcat_server as "tomcat_server_perms" %}
+    {% if "operate_db" in tomcat_server_perms %}
+    <button type='button' class='btn btn-primary' id="backup-db">备份数据库</button>
+    {% endif %}
+    <div class="row">
+        <div class="col-sm-9">
+            <table class="table table-bordered table-hover" style="margin-top: 3px;">
+                <tbody>
+                    <tr>
+                        <th>sql文件</th>
+                        <th>状态</th>
+                        <th>备注</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                    {% for sql in page_obj %}
+                        <tr>
+                            <td>{{ sql }}</td>
+                            <td>{{ sql.get_state_display }}</td>
+                            <td>{{ sql.note }}</td>
+                            <td>{{ sql.create_time|date:"Y-m-d H:i:s" }}</td>
+                            <td>
+                            {% if user.profile.role.alias == "developer" and sql.sys_bak %}
+                            {% else %}
+                                {% if perms.services.change_tomcatappsql %}
+                                <a role="button" class="btn btn-sm btn-info" href="{{ sql.get_update_url }}">编辑</a>
+                                {% endif %}
+                                {% if user.profile.role.alias == "CPIS" %}
+                                    {% if "execute_sql" in tomcat_server_perms %}
+                                    <button type='button' class='btn btn-sm btn-success execute-sql' value="{% url "execute_sql" sql.id %}" {% if sql.state == 2 %}disabled{% endif %}>执行</button>
+                                    {% endif %}
+                                {% elif user.profile.role.alias == "developer" %}
+                                    {% if "execute_sql" in tomcat_server_perms and not sql.sys_bak %}
+                                    <button type='button' class='btn btn-sm btn-success execute-sql' value="{% url "execute_sql" sql.id %}" {% if sql.state == 2 %}disabled{% endif %}>执行</button>
+                                    {% endif %}
+                                {% endif %}
+                                {% if perms.services.delete_tomcatappsql %}
+                                <a role="button" class="btn btn-sm btn-danger" href="{{ sql.get_delete_url }}">删除</a>
+                                {% endif %}
+                            {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div align="center">
+                {% bootstrap_pagination page_obj url=request.path size="small" %}
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="{{ tomcat_app.get_absolute_url }}" class="list-group-item">基本信息</a>
+                <a href="{% url 'tomcat_app_war_list' tomcat_app_id=tomcat_app.id %}" class="list-group-item">War包列表<span class="badge">{{ tomcat_app.tomcatappwar_set.count }}</span></a>
+                <a href="#" class="list-group-item active">Sql文件列表<span class="badge">{{ tomcat_app.tomcatappsql_set.count }}</span></a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+{% get_obj_perms request.user for tomcat_app.tomcat_server as "tomcat_server_perms" %}
+{% if "operate_db" in tomcat_server_perms %}
+<script>
+    $(document).ready(function () {
+        $('.execute-sql').click(function () {
+            var url = $(this).val();
+            bootbox.confirm('确认执行sql吗？', function (result) {
+                if (result) {
+                    $.getJSON(url, {}, function (ret) {
+                        if (ret.msg == 0) {
+                            bootbox.alert('已经添加到任务队列中!');
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#backup-db').click(function () {
+            bootbox.confirm('确认执行备份吗？', function (result) {
+                if (result) {
+                    var url = "{% url 'backup_database' tomcat_app.id %}";
+                    $.getJSON(url, {}, function (ret) {
+                        if (ret.msg == 0) {
+                            bootbox.alert('已经添加到任务队列中!');
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除Tomcat应用数据库{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app_db.app.get_absolute_url }}">Tomcat应用：{{ tomcat_app_db.app.name }}</a></li>
+        <li class="active"><a href="{{ tomcat_app_db.get_absolute_url }}">数据库：{{ tomcat_app_db.name }}</a></li>
+    </ol>
+
+    {% if tomcat_app_db.is_ready %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="alert alert-danger" role="alert">确认要删除数据库 "{{ tomcat_app_db.name }}" 吗?</div>
+            {% buttons submit="确认" %}{% endbuttons %}
+        </form>
+    {% else %}
+        <div class="alert alert-info" role="alert">这个数据库有任务正在后台执行, 暂时不能删除!</div>
+    {% endif %}
+{% endblock %}

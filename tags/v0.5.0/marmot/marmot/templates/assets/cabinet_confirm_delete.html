@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除机柜{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ cabinet.idc.get_absolute_url }}">{{ cabinet.idc.name }}</a></li>
+        <li class="active">删除机柜：{{ cabinet.num }}</li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">确认要删除机柜"{{ cabinet.num }}"吗?</div>
+        <div class="alert alert-danger" role="alert">
+            <p>注意:它的附属设备也会一起被删除</p>
+            {% for server in cabinet.server_set.all %}
+                <p>主机：{{ server.hostname }} - {{ server.listen_ip }}</p>
+            {% endfor %}
+            {% for networkdevice in cabinet.networkdevice_set.all %}
+                <p>{{ networkdevice.get_device_type_display }} - {{ networkdevice.num }}</p>
+            {% endfor %}
+        </div>
+        {% buttons submit="确认" %}{% endbuttons %}
+    </form>
+{% endblock %}

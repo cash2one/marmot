@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}ICE服务{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ ice_service_node.center.get_absolute_url }}">ICE注册中心：{{ ice_service_node.center.name }}</a></li>
+        <li>ICE节点：{{ ice_service_node.name }}</li>
+    </ol>
+    {% if perms.services.change_iceservicenode %}
+    <a role="button" class="btn btn-primary" href="{{ ice_service_node.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.services.delete_iceservicenode %}
+    <a role="button" class="btn btn-primary" href="{{ ice_service_node.get_delete_url }}">删除</a>
+    {% endif %}
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ ice_service_node.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">位置</th>
+                <td>{{ ice_service_node.host.hostname}} - {{ ice_service_node.host.ip }}</td>
+            </tr>
+            <tr>
+                <th scope="row">程序包位置</th>
+                <td>{{ ice_service_node.package_dir }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ ice_service_node.user.first_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ ice_service_node.note }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ ice_service_node.create_time }}</td>
+            </tr>
+            <tr>
+                <th scope="row">更新时间</th>
+                <td>{{ ice_service_node.modify_time }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

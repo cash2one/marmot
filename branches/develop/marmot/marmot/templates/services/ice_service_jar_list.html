@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}ICE服务{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ ice_service.center.get_absolute_url }}">ICE注册中心：{{ ice_service.center.name }}</a></li>
+        <li><a href="{{ ice_service.get_absolute_url }}">ICE服务：{{ ice_service.name }}</a></li>
+    </ol>
+    <a role="button" class="btn btn-primary" href="{% url 'ice_service_jar_create' ice_service.id %}">添加</a>
+    <div class="row">
+    <div class="col-sm-9">
+        <table class="table table-bordered table-hover" style="margin-top: 3px;">
+            <thead>
+                <tr>
+                    <th>地址</th>
+                    <th>下载完成</th>
+                    <th>状态</th>
+                    <th style="width: 25%">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for pkg in ice_service_jar_list %}
+                <tr>
+                    <td>{{ pkg.url }}</td>
+                    <td>{{ pkg.finished }}</td>
+                    <td>
+                        {% if pkg.active %}
+                            <span class="label label-success">激活</span>
+                        {% else %}
+                            <span class="label label-danger">关闭</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button type='button' class='btn btn-sm btn-success' onclick='activeConfirm("{{ pkg.get_active_url }}")' {% if pkg.active %}disabled{% endif %}>激活</button>
+                        <a role="button" class="btn btn-sm btn-info" href="{{ pkg.get_update_url }}">编辑</a>
+                        <button type='button' class='btn btn-sm btn-danger' onclick='deleteConfirm("{{ pkg.get_delete_url }}")'>删除</button>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div align="center">
+            {% bootstrap_pagination page_obj url=request.path size="small" %}
+        </div>
+    </div>
+        <div class="col-sm-3">
+            <div class="list-group">
+                <a href="{{ ice_service.get_absolute_url }}" class="list-group-item">基本信息</a>
+                <a href="#" class="list-group-item active">程序包列表<span class="badge">{{ active_jar_count }}</span></a>
+                <a href="{% url 'ice_service_config_list' ice_service_id=ice_service.id %}" class="list-group-item">配置文件列表<span class="badge">{{ active_config_count }}</span></a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

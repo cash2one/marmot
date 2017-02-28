@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}添加服务器{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">{{cab.idc}} -- 机柜：{{cab.num}} -- 添加服务器</h1>
+        </div>
+    </div>
+
+	<form class="form-horizontal" id="add_server_form">
+		<div class="form-group">
+			<label for="server_cab" class="col-sm-2 control-label">机柜</label>
+			<div class="col-sm-9">
+				<input type="text" class="form-control" id="server_cab" name="cabinet" value="{{cab.id}}" readonly>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="server_addr" class="col-sm-2 control-label">位置</label>
+			<div class="col-sm-9">
+				<input type="text" class="form-control" id="server_addr" name="position" placeholder="位置">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="server_grid" class="col-sm-2 control-label">ganglia_Grid</label>
+			<div class="col-sm-9">
+				<input type="number" class="form-control" id="server_grid" name="grid" placeholder="填写数字">
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="server_use_for" class="col-sm-2 control-label">用途</label>
+			<div class="col-sm-9">
+				<select class="form-control" name="use_for">
+					{% for x, y in opts %}
+						<option value="{{x}}">{{y}}</option>
+					{% endfor %}
+				</select>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="idc_ext" class="col-sm-2 control-label">备注</label>
+			<div class="col-sm-9">
+                <textarea class="form-control" rows="3" id="idc_ext" name="note" placeholder="备注"></textarea>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="server_listen_ip" class="col-sm-2 control-label">监听IP</label>
+			<div class="col-sm-8">
+				<input type="text" class="form-control" id="server_listen_ip" name="listen_ip" placeholder="监听IP">
+			</div>
+			<button type="button" id="get_machine_info" class="btn btn-primary">检测</button>
+		</div>
+		<div class="well">
+			<div class="form-group">
+				<label for="server_name" class="col-sm-2 control-label">主机名</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_name" name="hostname">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="server_os" class="col-sm-2 control-label">操作系统</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_os" name="os">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="server_serial" class="col-sm-2 control-label">服务器序列号</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_serial" name="server_serial">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="server_manu" class="col-sm-2 control-label">厂商</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_manu" name="manufacturer">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="server_modal" class="col-sm-2 control-label">产品型号</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_modal" name="product_model">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="server_cpu_modal" class="col-sm-2 control-label">CPU型号</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_cpu_modal" name="cpu_model">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="server_cpu_cores" class="col-sm-2 control-label">CPU物理内核数</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_cpu_cores" name="cpu_cores">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="server_cpu_logic_nums" class="col-sm-2 control-label">CPU逻辑内核数</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_cpu_logic_nums" name="cpu_logic_nums">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="server_mem_size" class="col-sm-2 control-label">内存大小</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_mem_size" placeholder="以G为单位" name="mem_size">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="server_disk_size" class="col-sm-2 control-label">磁盘大小</label>
+				<div class="col-sm-9">
+					<input type="text" readonly class="form-control" id="server_disk_size" placeholder="以G为单位" name="disk_size">
+				</div>
+			</div>
+			<input type="text" id="md5"  name='md5' style="display:none;"/>
+		</div>
+	</form>
+
+	<div id="net_cards">
+	</div>
+
+	<div class="text-center">
+		<button type="button" id="add_server_submit" class="btn btn-primary">添加</button>
+	</div>
+</div>
+
+<div class="row col-md-6 hidden" id="card_form_sample">
+	<form role="form" class="form-horizontal">
+		<fieldset class="well">
+            <div class="col-md-6">
+                <label for="net_name">网卡名</label>
+                <input type="text" class="form-control" id="net_name" name="name">
+            </div>
+            <div class="col-md-6">
+                <label for="ip_addr">IP地址</label>
+                <input type="text" class="form-control" id="id_addr" name="ip_addr">                
+            </div>
+            <div class="col-md-6">
+                <label for="net_addr">网络地址</label>
+                <input type="text" class="form-control" id="net_addr" name="net_addr">
+            </div>
+            <div class="col-md-6">
+                <label for="sub_mask">子网掩码</label>
+                <input type="text" class="form-control" id="sub_mask" name="sub_mask">
+            </div>
+            <div class="col-md-6">
+                <label for="mac_addr">MAC地址</label>
+                <input type="text" class="form-control" id="mac_addr" name="mac_addr">
+            </div>
+            <div class="col-md-6">
+                <label for="bonding">子网掩码</label>
+                <input type="text" class="form-control" id="bonding" name="bonding">
+            </div>
+		</fieldset>
+	</form>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(function(){
+	$("#add_server_submit").click(function() {
+		data = {'server_info': $("#add_server_form").serialize(), 'net_cards': []};
+
+		$("#net_cards").find("form").each(function() {
+			data.net_cards.push($(this).serialize());
+		});
+
+		$.ajax({
+			type: "POST",
+			url: "{{request.path}}",
+			data: data,
+			success: function(msg){
+				if (msg.succ) {
+					location.href = "/assets/device/cab_{{cab.id}}/";
+				} else {
+					alert(msg.res);
+				}
+			},
+			error: function(){
+				alert("报告管理员！");
+			}
+		});
+	});
+	$("#server_listen_ip").focus(function() {
+		$("#server_name").val('');
+		$("#server_os").val('');
+		$("#server_serial").val('');
+		$("#server_manu").val('');
+		$("#server_modal").val('');
+		$("#server_cpu_modal").val('');
+		$("#server_cpu_cores").val('');
+		$("#server_cpu_logic_nums").val('');
+		$("#server_mem_size").val('');
+		$("#server_disk_size").val('');
+		$("#md5").val();
+		$("#net_cards").empty('');
+	});
+
+	$("#get_machine_info").click(function() {
+		$.ajax({
+			type: "POST",
+			url: "/assets/get_machine_info/",
+			data: {'ip': $("#server_listen_ip").val()},
+			success: function(msg) {
+				if (msg.succ) {
+					$("#server_name").val(msg.res.machine.HostName);
+					$("#server_os").val(msg.res.machine.System);
+					$("#server_serial").val(msg.res.machine.SerialNumber);
+					$("#server_manu").val(msg.res.machine.Manufacturer);
+					$("#server_modal").val(msg.res.machine.ProductName);
+					$("#server_cpu_modal").val(msg.res.cpu.Model);
+					$("#server_cpu_cores").val(msg.res.cpu.CoreNum);
+					$("#server_cpu_logic_nums").val(msg.res.cpu.LogicNum);
+					$("#server_mem_size").val(msg.res.mem.Total);
+					$("#server_disk_size").val(msg.res.disk.Total);
+					$("#md5").val(msg.res.md5);
+					$("#net_cards").empty();
+					for (var card in msg.res.cards) {
+						if (card%2 == 0) {
+							var div = $("#card_form_sample").clone().removeAttr("id");
+						} else {
+							var div = $("#card_form_sample").clone().removeAttr("id").addClass("pull-right");
+						}
+						div.removeClass("hidden").appendTo($("#net_cards"));
+						div.find("input[name=name]").val(msg.res.cards[card].name);
+						div.find("input[name=ip_addr]").val(msg.res.cards[card].inet_addr);
+						div.find("input[name=net_addr]").val(msg.res.cards[card].Bcast);
+						div.find("input[name=sub_mask]").val(msg.res.cards[card].Mask);
+						div.find("input[name=mac_addr]").val(msg.res.cards[card].HWaddr);
+						div.find("input[name=bonding]").val(msg.res.cards[card].bond);
+					}
+				}
+				else {
+					alert(msg.res);
+				}
+			},
+			error: function() {
+				alert("报告管理员！");
+			}
+		});
+	});
+});
+</script>
+{% endblock %}

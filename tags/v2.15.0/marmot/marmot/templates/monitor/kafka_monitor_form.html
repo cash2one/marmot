@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Kafka监控器{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'activemq_monitor_list_view' %}">Kafka监控器列表</a></li>
+        {% if "create" in request.path %}
+            <li class="active">新建Kafka监控器</li>
+        {% elif "update" in request.path %}
+            <li><a href="{{ kafka_monitor.get_absolute_url }}">Kafka监控器：{{ kafka_monitor.name }}</a></li>
+            <li class="active">更新</li>
+        {% endif %}
+    </ol>
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+{% endblock %}

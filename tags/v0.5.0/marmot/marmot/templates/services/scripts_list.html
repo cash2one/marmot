@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}脚本列表{% endblock %}
+{% block content %}
+    <div class="panel panel-primary">
+		<div class="panel-heading">新建脚本</div>
+		<div class="panel-body">
+            <form class="form-horizontal" method="POST" id="script_form" enctype="multipart/form-data">
+                {% if err %}<div class="alert alert-warning" role="alert">{{ err|safe }}</div>{% endif %}
+                <div class="form-group">
+                    <label for="script_name" class="col-sm-1 control-label">名字</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="script_name" name="name">
+                    </div>
+                    <label for="script_command" class="col-sm-1 control-label">命令</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control" id="script_command" name="command">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="script_file" class="col-sm-1 control-label">脚本</label>
+                    <div class="col-sm-4">
+                        <input type="file" id="script_file" name="script">
+                        <p class="help-block">只允许上传zip文件</p>
+                    </div>
+                    <label for="script_ext" class="col-sm-1 control-label">备注</label>
+                    <div class="col-sm-4">
+                        <textarea class="form-control" rows="3" id="script_ext" name="ext" placeholder="备注"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="script_interval" class="col-sm-2 control-label">警报间隔（分钟）</label>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="script_interval" name="alarm_interval" value="0">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <input  type="submit" class="btn btn-primary">
+                </div>
+            </form>
+		</div>
+    </div>
+    <div class="panel panel-primary">
+		<div class="panel-heading">脚本列表</div>
+		<div class="panel-body">
+			<table class="table table-hover table-striped">
+				<thead>
+					<tr>
+                        <th>名称</th>
+                        <th>命令</th>
+                        <th>文件</th>
+                        <th>间隔(分钟)</th>
+                        <th>备注</th>
+                    </tr>
+				</thead>
+				<tbody>
+					{% for script in scripts %}
+						<tr>
+                            <td>{{script.name}}</td>
+                            <td>{{script.command}}</td>
+                            <td>{{script.filename}}</td>
+                            <td>{{script.alarm_interval}}</td>
+                            <td>{{script.ext}}</td>
+                        </tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+    </div>
+{% endblock %}

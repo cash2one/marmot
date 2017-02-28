@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除Tomcat应用War包{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app_war.tomcat_app.tomcat_server.get_absolute_url }}">Tomcat服务器：{{ tomcat_app_war.tomcat_app.tomcat_server.name }}</a></li>
+        <li class="active"><a href="{{ tomcat_app_war.tomcat_app.get_absolute_url }}">{{ tomcat_app_war.tomcat_app.name }}</a></li>
+    </ol>
+    {% if tomcat_app_war.is_ready %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="alert alert-danger" role="alert">确认要删除War包 "{{ tomcat_app_war.url }}" 吗?</div>
+            {% buttons submit="确认" %}{% endbuttons %}
+        </form>
+    {% else %}
+        <div class="alert alert-warning" role="alert">这个War包正在后台下载, 暂时不能删除!</div>
+    {% endif %}
+{% endblock %}

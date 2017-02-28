@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}设置基本规则{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">{{server.hostname}}</h1>
+        </div>
+    </div>
+
+    <div class="panel panel-info">
+		<div class="panel-heading">设置警报{% if rule.is_updating %} -  <span class="label label-warning">等待上次更新({{rule.update_time}})结束,</span> {% endif %}{% if rule.err %} - <span class="label label-warning">{{ rule.err }}, 更新配置文件失败！</span>{% endif %}</div>
+		<div class="panel-body">
+			<form class="form-horizontal" id="rule_form">
+				<input type="text" name="server" value="{{server_id}}" hidden="true">
+				<input type="text" name="is_updating" value="True" hidden="true">
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="cpu_use" class="col-sm-6 control-label">CPU使用率大于</label>
+							<div class="col-sm-4">
+								<input type="text" class="form-control input-sm" id="cpu_use" name="cpu_use_gt" value="{{rule.cpu_use_gt}}" placeholder="如：0.81">
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="mem_less" class="col-sm-6 control-label">内存小于(G)</label>
+							<div class="col-sm-4">
+								<input type="text" class="form-control input-sm" id="mem_less" name="mem_size_lt" value="{{rule.mem_size_lt}}">
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="disk_less" class="col-sm-6 control-label">磁盘小于(G)</label>
+							<div class="col-sm-4">
+								<input type="text" class="form-control input-sm" id="disk_less" name="disk_size_lt" value="{{rule.disk_size_lt}}">
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="load_gt" class="col-sm-6 control-label">负载大于(5分钟)</label>
+							<div class="col-sm-4">
+								<input type="text" class="form-control input-sm" id="load_gt" placeholder="如：5.2" name="load_gt" value="{{rule.load_gt}}">
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<table class="table table-hover table-striped" id="list_services">
+					<thead>
+						<tr><th>服务名</th><th>端口</th><th>备注</th><th>选择</th></tr>
+					</thead>
+					<tbody>
+						{% for host_service in rule.services.all %}
+							<tr><td>{{host_service.service.name}}</td><td>{{host_service.service.ports}}</td><td>{{host_service.service.ext}}</td><td><input type="checkbox" value="{{host_service.id}}" name="services" checked="checked"></td></tr>
+						{% endfor %}
+						{% for host_service in unchecked_services %}
+							<tr><td>{{host_service.service.name}}</td><td>{{host_service.service.ports}}</td><td>{{host_service.service.ext}}</td><td><input type="checkbox" value="{{host_service.id}}" name="services"></td></tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</form>
+		</div>
+		<div class="panel-footer"><button type="button" class="btn btn-primary center-block" id="rule_submit" {% if rule.is_updating %} disabled="disabled" {% endif %}>更新服务器配置</button></div>
+	</div>
+</div>
+{% endblock %}
+
+
+{% block js%}
+<script type="text/javascript">
+$(function(){
+	$("#rule_submit").click(function() {
+		$.ajax({
+			type: "POST",
+			url:"{{request.path}}",
+			data: $("#rule_form").serialize(),
+			success: function(msg){
+				if (msg.succ) {
+					alert('成功！');
+					location.reload();
+				}
+				else {
+					alert(msg.reason);
+				}
+			},
+			error: function(){
+				alert("报告管理员！");
+			}
+		});
+	});
+});
+</script>
+{% endblock %}

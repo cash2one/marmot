@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}删除脚本{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active"><a href="{{ script.get_absolute_url }}">脚本：{{ script.name }}</a></li>
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="alert alert-danger" role="alert">确认要删除脚本"{{ script.name }}"吗?</div>
+        {% buttons submit="确认" %}{% endbuttons %}
+    </form>
+{% endblock %}

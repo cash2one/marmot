@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}sql文件{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ tomcat_app.tomcat_server.get_absolute_url }}">Tomcat服务器：{{ tomcat_app.tomcat_server.name }}</a></li>
+        <li class="active"><a href="{{ tomcat_app.get_absolute_url }}">Tomcat应用：{{ tomcat_app.name }}</a></li>
+    </ol>
+    {% if 'update' in request.path and not tomcat_app_sql.is_ready %}
+        <div class="alert alert-info" role="alert">这个sql正在后台执行, 暂时不能更新!</div>
+    {% else %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            {% buttons submit="提交" %}{% endbuttons %}
+        </form>
+    {% endif %}
+{% endblock %}

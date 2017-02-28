@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block title %}Kafka监控器列表{% endblock %}
+{% block content %}
+    {% if perms.monitor.add_kafkamonitor %}
+    <a role="button" class="btn btn-primary" href="{% url 'kafka_monitor_create' %}">新建Kafka监控器</a>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>zk地址</th>
+                <th>状态</th>
+                <th>备注</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for monitor in kafka_monitor_list %}
+                <tr>
+                    <td><a href="{{ monitor.get_absolute_url }}">{{ monitor.name }}</a></td>
+                    <td>{{ monitor.addr }}</td>
+                    <td>{% bootstrap_span_custom monitor.active "开启/关闭" %}</td>
+                    <td title="{{ monitor.note }}">{{ monitor.note | truncatechars:24 }}</td>
+                    <td>{{ monitor.created_by.get_full_name }}</td>
+                    <td>{{ monitor.create_time | date:"Y-m-d H:i:s" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

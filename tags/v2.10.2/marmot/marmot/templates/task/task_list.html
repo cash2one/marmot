@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block title %}任务列表{% endblock %}
+{% block content %}
+    {% if perms.task.add_task %}
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#select-task-modal">新建任务</button>
+    {% endif %}
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>申请时间</th>
+                <th>名称</th>
+                <th>类型</th>
+                <th>申请人</th>
+                <th>进度</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in page_obj %}
+                <tr>
+                    <td>{{ task.create_time | date:"Y-m-d H:i:s" }}</td>
+                    <td><a href="{{ task.get_absolute_url }}">{{ task.name | truncatechars:18 }}</a></td>
+                    <td>{{ task.type_raw }}</td>
+                    <td>
+                        {% if task.applicant %}{{ task.applicant.get_full_name }}{% endif %}
+                    </td>
+                    <td><abbr title="{{ task.get_current_state.description }}">{{ task.get_current_state.name }}</abbr></td>
+                    <td>{{ task.note | truncatechars:18 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div align="center">
+        {% bootstrap_pagination page_obj url=request.path size="small" %}
+    </div>
+    <div class="modal fade" id="select-task-modal" tabindex="-1" role="dialog" aria-labelledby="select-task-model" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">请选择任务类型</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="task-type" class="control-label">任务类型：</label>
+                            <select id="task-type" class="form-control">
+                                {% for v, t in task_type %}
+                                <option value="{{ v }}">{{ t }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="taskCreate">确定</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    {% if perms.task.add_task %}
+        <script>
+        $(document).ready(function () {
+            var oTaskType = $('#task-type');
+            $('#taskCreate').click(function () {
+                var taskType = oTaskType.val();
+                if (taskType == "ice") {
+                    location.href = "{% url 'task_ice_create' %}";
+                } else if (taskType == "tomcat") {
+                    location.href = "{% url 'task_tomcat_app_create' %}";
+                } else if (taskType == "firewall") {
+                    location.href = "{% url 'task_firewall_create' %}";
+                } else if (taskType == "dns") {
+                    location.href = "{% url 'task_dns_create' %}";
+                }
+            });
+        });
+        </script>
+    {% endif %}
+{% endblock %}

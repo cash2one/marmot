@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}主机{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        {% if user.profile.role.alias == "CPIS" %}
+        <li><a href="{{ server.cabinet.idc.get_absolute_url }}">{{ server.cabinet.idc.name }}</a></li>
+        <li><a href="{{ server.cabinet.get_absolute_url }}">机柜：{{ server.cabinet.num }}</a></li>
+        {% endif %}
+        <li class="active">主机：{{ server.hostname }}</li>
+    </ol>
+    {% if perms.assets.change_server %}
+    <a role="button" class="btn btn-primary btn-sm" href="{{ server.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.assets.delete_server %}
+    <a role="button" class="btn btn-danger btn-sm" href="{{ server.get_delete_url }}">删除</a>
+    {% endif %}
+
+    <ul class="nav nav-tabs" role="tablist" style="margin-bottom: 5px; margin-top: 5px">
+        <li role="presentation" class="active"><a href="{{ server.get_absolute_url }}">基本信息</a></li>
+        <li role="presentation"><a href="{% url 'server_runtime_view' %}?hostname={{ server.hostname }}">运行信息</a></li>
+        <li role="presentation"><a href="{% url 'server_connections_view' %}?hostname={{ server.hostname }}">网络连接</a></li>
+        <li role="presentation"><a href="{% url 'server_process_list_view' %}?hostname={{ server.hostname }}">进程</a></li>
+    </ul>
+
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">主机名</th>
+                <td title="{{ server.ip }}">{{ server.hostname }}</td>
+            </tr>
+            <tr>
+                <th scope="row">类型</th>
+                <td>{{ server.get_type_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">宿主</th>
+                <td><a href="{{ server.master_host.get_absolute_url }}">{{ server.master_host.hostname }}</a></td>
+            </tr>
+            <tr>
+                <th scope="row">标签</th>
+                <td>{{ server.get_tags_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">操作系统</th>
+                <td>{{ server.os }}</td>
+            </tr>
+            <tr>
+                <th scope="row">序列号</th>
+                <td>{{ server.serial_num }}</td>
+            </tr>
+            <tr>
+                <th scope="row">厂商</th>
+                <td>{{ server.manufacturer}}</td>
+            </tr>
+            <tr>
+                <th scope="row">产品型号</th>
+                <td>{{ server.product_model }}</td>
+            </tr>
+            <tr>
+                <th scope="row">CPU型号</th>
+                <td>{{ server.cpu_model }}</td>
+            </tr>
+            <tr>
+                <th scope="row">CPU逻辑内核数</th>
+                <td>{{ server.cpu_logic_nums }}</td>
+            </tr>
+            <tr>
+                <th scope="row">内存</th>
+                <td>{{ server.mem_size }}</td>
+            </tr>
+            <tr>
+                <th scope="row">硬盘</th>
+                <td>{{ server.disk_size }}</td>
+            </tr>
+            <tr>
+                <th scope="row">cpu警报线</th>
+                <td>{{ server.cpu_level }}</td>
+            </tr>
+            <tr>
+                <th scope="row">内存警报线</th>
+                <td>{{ server.memory_level }}</td>
+            </tr>
+            <tr>
+                <th scope="row">硬盘警报线</th>
+                <td>{{ server.disk_level }}</td>
+            </tr>
+            <tr>
+                <th scope="row">警报间隔</th>
+                <td>{{ server.alarm_interval }}</td>
+            </tr>
+            <tr>
+                <th scope="row">警报状态</th>
+                <td>{{ server.get_monitor_enabled_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">用途</th>
+                <td>{{ server.get_use_for_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ server.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if perms.assets.add_processmonitor %}
+    <a role="button" class="btn btn-primary btn-sm" href="{% url 'process_monitor_create' server.id %}">添加监控器</a>
+    {% else %}
+    <span class="label label-success">进程监控器</span>
+    {% endif %}
+    <table title="" class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>程序</th>
+                <th>端口</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for monitor in server.processmonitor_set.all %}
+                <tr>
+                    <td><a href="{{ monitor.get_absolute_url }}">{{ monitor.name }}</a></td>
+                    <td>{{ monitor.cmd }}</td>
+                    <td>{{ monitor.port }}</td>
+                    <td>{{ monitor.note }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if server.netcard_set.all %}
+    <span class="label label-success">网卡</span>
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>IP</th>
+                <th>广播</th>
+                <th>掩码</th>
+                <th>硬件地址</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for netcard in server.netcard_set.all %}
+                <tr>
+                    <td>{{ netcard.name }}</td>
+                    <td>{{ netcard.ip_addr }}</td>
+                    <td>{{ netcard.net_addr }}</td>
+                    <td>{{ netcard.sub_mask }}</td>
+                    <td>{{ netcard.mac_addr }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+{% endblock %}

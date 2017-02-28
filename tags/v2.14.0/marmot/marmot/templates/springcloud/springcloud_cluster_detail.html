@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}SpringCloud集群{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'springcloud_cluster_list' %}">SpringCloud集群列表</a></li>
+        <li class="active">{{ springcloud_cluster.name }}</li>
+    </ol>
+
+    {% if perms.springcloud.change_springcloudcluster %}
+    <a role="button" class="btn btn-primary" href="{{ springcloud_cluster.get_update_url }}">编辑</a>
+    {% endif %}
+    {% if perms.springcloud.delete_springcloudcluster %}
+    <a role="button" class="btn btn-danger" href="{{ springcloud_cluster.get_delete_url }}">删除</a>
+    {% endif %}
+
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">名称</th>
+                <td>{{ springcloud_cluster.name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ springcloud_cluster.note }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建人</th>
+                <td>{{ springcloud_cluster.created_by.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">创建时间</th>
+                <td>{{ springcloud_cluster.create_time }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if perms.springcloud.add_springcloudnode %}
+    <a role="button" class="btn btn-primary" href="{% url 'springcloud_node_create' pk=springcloud_cluster.id %}">添加节点</a>
+    {% endif %}
+
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>主机</th>
+                <th>工程目录</th>
+                <th>状态</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for node in springcloud_node_list %}
+                <tr>
+                    <td><a href="{{ node.get_absolute_url }}">{{ node.name }}</a></td>
+                    <td>{{ node.server }}</td>
+                    <td>{{ node.cwd }}</td>
+                    <td>{% bootstrap_span_custom node.is_online "在线/离线" %}</td>
+                    <td>{{ node.note }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if perms.springcloud.add_springcloudapp %}
+    <a role="button" class="btn btn-primary" href="{% url 'springcloud_app_create' pk=springcloud_cluster.id %}">添加应用</a>
+    {% endif %}
+
+    <table class="table table-hover table-striped" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>端口</th>
+                <th>开发者</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in springcloud_app_list %}
+                <tr>
+                    <td><a href="{{ app.get_absolute_url }}">{{ app.name }}</a></td>
+                    <td>{{ app.port }}</td>
+                    <td>
+                        {% for d in app.develops.all %}
+                            {{ d.get_full_name }};&nbsp;
+                        {% endfor %}
+                    </td>
+                    <td>{{ app.note }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}服务器列表{% endblock %}
+{% block content %}
+    <div class="row">
+        <form id="query_form" action="/assets/list_host/" method="GET">
+            <div class="col-md-3">
+                <select class="form-control" name="get_idc" id="get_idc">
+                    <option value="all">all</option>
+                    {%for idc in idcs%}
+                    <option value="{{idc.id}}">{{idc.name}}</option>
+                    {%endfor%}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-control" id="cabinet_idc" name="cabinet_idc">
+                    <option value="all">all</option>
+                    {%if cabinets%}
+                        {%for key, cabinet in cabinets%}
+                        <option value="{{key}}">{{cabinet}}</option>
+                        {%endfor%}
+                    {%endif%}
+                </select>
+            </div>
+            <input type= 'text' id='query_state' name="query_state" value="1"  style="display:none;"/>
+            <button class="btn btn-primary" id="query" type="submit">查询</button>
+        </form>
+    </div>
+
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr>
+                <th>主机名</th>
+                <th>IP</th>
+                <th>产品型号</th>
+                <th>CPU物理核数</th>
+                <th>内存(G)</th>
+                <th>磁盘(G)</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {%for server in page%}
+            <tr>
+                <td><a href="/assets/host_detail/?server_id={{server.id}}">{{server.hostname}}</a></td>
+                <td>{{server.listen_ip}}</td>
+                <td>{{server.product_name}}</td>
+                <td>{{server.cpu_cores}}</td>
+                <td>{{server.mem_size}}</td>
+                <td>{{server.disk_size}}</td>
+                <td><a class="btn btn-success" href="/services/select_ruleset/server_{{server.id}}/">主机设置</a></td>
+            </tr>
+            {%endfor%}
+            <input type= 'text' id='server_id' value="{{query_info}}"  style="display:none;"/>
+        </tbody>
+    </table>
+
+	<nav>
+		{% if page %}
+			<ul class="pagination">
+				{% if page.has_previous %}
+					<li><a href="/assets/list_host/?query_info={{query_info}}&query_state=1&page={{page.previous_page_number }}">&laquo;</a></li>
+				{% else %}
+					<li><a href="">&laquo;</a></li>
+				{% endif %}
+					<li><a href="/assets/list_host/?query_info={{query_info}}&query_state=1&page={{page.number}}">{{page.number}}</a></li>
+				{% if page.has_next %}
+					<li><a href="/assets/list_host/?query_info={{query_info}}&query_state=1&page={{page.next_page_number }}">&raquo;</a></li>
+				{% else %}
+					<li><a href="">&raquo;</a></li>
+				{% endif %}
+			</ul>
+		{% endif %}
+	</nav>
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+$(function(){
+	$("#get_idc").click(function() {
+		var select = $(self).val();
+        var oCabinetIdc = $('#cabinet_idc');
+		$.ajax({
+			type: "GET",
+			url:"/assets/get_idc/",
+			data: {idc_id:select},
+			success: function(msg){
+				if (msg.succ) {
+					oCabinetIdc.html(msg.cabinets);
+					oCabinetIdc.append('<option value="all">all</option>');
+					for (var cabinet in msg.cabinets)
+						oCabinetIdc.append($('<option></option>').attr('value', cabinet).text(msg.cabinets[cabinet]));
+                }
+				else {
+					oCabinetIdc.html(msg.cabinets);
+					oCabinetIdc.append('<option value="all">all</option>');}
+			},
+			error: function(){alert("报告管理员！");}
+			});
+		});
+	});
+</script>
+{% endblock %}

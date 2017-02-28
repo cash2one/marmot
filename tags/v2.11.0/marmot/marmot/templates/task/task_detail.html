@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}任务 - {{ task.name }}{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li class="active">任务：{{ task.name }}</li>
+    </ol>
+    {% if perms.task.assign_te and not task.is_completed %}
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#assign-te-modal">分配测试</button>
+    {% endif %}
+    {% for t in transitions %}
+    <button type="button" class="btn btn-primary progress-transition" value="{{ t.id }}">{{ t.name }}</button>
+    {% endfor %}
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add-comment-modal">记录信息</button>
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">任务名称</th>
+                <td>{{ task.name }}</td>
+            </tr>
+            {% if task.type == "dns" %}
+                <tr>
+                    <th scope="row">域名</th>
+                    <td>{{ task.content_object.domain }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">解析地址</th>
+                    <td>{{ task.content_object.ip }}</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <th scope="row">申请人</th>
+                <td>{{ task.applicant.get_full_name }}</td>
+            </tr>
+            <tr>
+                <th scope="row">任务类型</th>
+                <td>{{ task.type_raw }}</td>
+            </tr>
+            {% if task.type == "ice" %}
+            <tr>
+                <th scope="row">ICE服务</th>
+                <td><a href="{{ task.content_object.ice_app.get_absolute_url }}">{{ task.content_object.ice_app.name }}</a></td>
+            </tr>
+            <tr>
+                <th scope="row">Svn地址</th>
+                <td>{{ task.content_object.svn}}</td>
+            </tr>
+            {% elif task.type == "tomcat" %}
+            <tr>
+                <th scope="row">Tomcat应用</th>
+                <td><a href="{{ task.content_object.tomcat_app.get_absolute_url }}">{{ task.content_object.tomcat_app.name }}</a></td>
+            </tr>
+            <tr>
+                <th scope="row">Svn地址</th>
+                <td>{{ task.content_object.svn}}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th scope="row">进度</th>
+                <td><strong>{{ task.get_current_state.name }}</strong> - {{ task.get_current_state.description }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td><pre class="pre-note">{{ task.note }}</pre></td>
+            </tr>
+        </tbody>
+    </table>
+
+    {% if task.type == "firewall" %}
+        <table id="goal" class="table table-bordered table-hover" style="margin-top: 3px;">
+            <thead>
+                <tr>
+                    <th>源地址</th>
+                    <th>目标地址</th>
+                    <th>端口</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for goal in task.content_object.firewallgoal_set.all %}
+                    <tr>
+                        <td>{{ goal.src_addr }}</td>
+                        <td>{{ goal.dest_addr }}</td>
+                        <td>{{ goal.ports }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <thead>
+            <tr>
+                <th>时间</th>
+                <th>状态</th>
+                <th style="max-width: 60%">记录</th>
+                <th>执行人</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in task.workflowactivity.history.all %}
+                <tr>
+                    <td>{{ h.created_on | date:"Y-m-d H:i:s" }}</td>
+                    <td>{{ h.state.name }}</td>
+                    <td>
+                        {% if h.transition %}
+                            {{ h.transition.name }}
+                        {% else %}
+                            {{ h.note }}
+                        {% endif %}
+                    </td>
+                    <td>{{ h.created_by.get_full_name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if perms.task.assign_te and not task.is_completed %}
+    <div class="modal fade" id="assign-te-modal" tabindex="-1" role="dialog" aria-labelledby="assign-te-modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">指派测试</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="te-user" class="control-label">指派给：</label>
+                            <select id="te-user" class="form-control">
+                                {% for te in te_list %}
+                                <option value="{{ te.id }}">{{ te.get_full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="assignTe">确定</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="modal fade" id="add-comment-modal" tabindex="-1" role="dialog" aria-labelledby="add-comment-modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title"><strong>记录信息</strong></h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="comment" class="control-label"></label>
+                            <textarea id="comment" name="comment" class="form-control" rows="4"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="add-comment">确定</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+<script>
+    $(document).ready(function () {
+        $('#assignTe').click(function () {
+            var url = '{% url "assign_te" task.id %}';
+            $.getJSON(url, {te: $('#te-user').val()}, function (ret) {
+                if (ret.msg == 0) {
+                    location.reload();
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+
+        $('#add-comment').click(function () {
+            var url = '{% url "add_comment" task.id %}';
+            $.postJSON(url, {note: $('#comment').val()}, function (ret) {
+                if (ret.msg == 0) {
+                    location.reload();
+                } else {
+                    bootbox.alert(ret.msg);
+                }
+            });
+        });
+
+        $('.progress-transition').click(function () {
+            var transId = $(this).val();
+            var url = "{% url "progress_transition" task.id %}";
+            bootbox.confirm('确认执行 <' + $(this).text() + '> 吗？', function (result) {
+                if (result) {
+                    $.getJSON(url, {transId: transId}, function (ret) {
+                        if (ret.msg == 0) {
+                            location.reload();
+                        } else {
+                            bootbox.alert(ret.msg);
+                        }
+                    });
+                }
+            });
+        });
+    });
+    </script>
+{% endblock %}

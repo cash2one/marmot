@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}网络设备{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        {% if 'network-device/create' in request.path %}
+            <li><a href="{{ cabinet.idc.get_absolute_url }}">{{ cabinet.idc.name }}</a></li>
+            <li><a href="{{ cabinet.get_absolute_url }}">{{ cabinet.num }}</a></li>
+            <li class="active">添加网络设备</li>
+        {% elif 'network-device/update' in request.path %}
+            <li><a href="{{ network_device.cabinet.idc.get_absolute_url }}">{{ network_device.cabinet.idc.name }}</a></li>
+            <li><a href="{{ network_device.cabinet.get_absolute_url }}">{{ network_device.cabinet.num }}</a></li>
+            <li class="active">编辑网络设备：{{ network_device.get_device_type_display }}-{{ network_device.num }}</li>
+        {% endif %}
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+
+{% endblock %}

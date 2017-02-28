@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}网络设备 - {{ network_device.num }}{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        <li><a href="{{ network_device.cabinet.idc.get_absolute_url }}">{{ network_device.cabinet.idc.name }}</a></li>
+        <li><a href="{{ network_device.cabinet.get_absolute_url }}">{{ network_device.cabinet.num }}</a></li>
+        <li>网络设备：{{ network_device.get_device_type_display }}-{{ network_device.num }}</li>
+    </ol>
+
+    <a role="button" class="btn btn-primary" href="{{ network_device.get_update_url }}">编辑</a>
+    <a role="button" class="btn btn-primary" href="{{ network_device.get_delete_url }}">删除</a>
+    <table class="table table-bordered table-hover" style="margin-top: 3px;">
+        <tbody>
+            <tr>
+                <th scope="row">设备编号</th>
+                <td>{{ network_device.num }}</td>
+            </tr>
+            <tr>
+                <th scope="row">设备位置</th>
+                <td>{{ network_device.position}}</td>
+            </tr>
+            <tr>
+                <th scope="row">厂商</th>
+                <td>{{ network_device.manufacturer }}</td>
+            </tr>
+            <tr>
+                <th scope="row">型号</th>
+                <td>{{ network_device.device_model }}</td>
+            </tr>
+            <tr>
+                <th scope="row">设备类型</th>
+                <td>{{ network_device.get_device_type_display }}</td>
+            </tr>
+            <tr>
+                <th scope="row">备注</th>
+                <td>{{ network_device.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

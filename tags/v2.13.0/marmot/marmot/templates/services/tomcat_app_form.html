@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+{% block title %}Tomcat应用{% endblock %}
+{% block content %}
+    <ol class="breadcrumb">
+        {% if "/tomcat-app/create" in request.path %}
+            <li><a href="{{ tomcat_cluster.get_absolute_url }}">Tomcat集群：{{ tomcat_cluster.name }}</a></li>
+            <li class="active">添加Tomcat应用</li>
+        {% else %}
+            <li><a href="{{ tomcat_app.cluster.get_absolute_url }}">Tomcat集群：{{ tomcat_app.cluster.name }}</a></li>
+            <li class="active">更新Tomcat应用：{{ tomcat_app.name }}</li>
+        {% endif %}
+    </ol>
+
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit="提交" %}{% endbuttons %}
+    </form>
+
+{% endblock %}
